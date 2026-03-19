@@ -171,6 +171,15 @@ pub fn word_part_debug(part WordPart) string {
             if part.count_items {
                 attrs << 'count_items'
             }
+            match part.array_mode {
+                .all_star {
+                    attrs << 'array=*'
+                }
+                .all_at {
+                    attrs << 'array=@'
+                }
+                .none {}
+            }
             if idx := part.index {
                 attrs << 'index=${word_debug(idx)}'
             }

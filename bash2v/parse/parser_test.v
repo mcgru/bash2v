@@ -56,6 +56,23 @@ fn test_parse_param_expansion_arithmetic_index() {
     assert ast.word_debug(word) == 'param(arr; index=arith(i + 1); op=noop)'
 }
 
+fn test_parse_param_expansion_all_items_modes() {
+    mut parser1 := new_parser(lex.tokenize(r'${arr[*]}'))
+    word1 := parser1.parse_word() or { panic(err) }
+    assert ast.word_debug(word1) == 'param(arr; array=*; op=noop)'
+
+    mut parser2 := new_parser(lex.tokenize(r'${arr[@]}'))
+    word2 := parser2.parse_word() or { panic(err) }
+    assert ast.word_debug(word2) == 'param(arr; array=@; op=noop)'
+}
+
+fn test_parse_double_quoted_single_quotes_around_array_index() {
+    source := "\"" + "'" + r'${arr[0]}' + "'" + "\""
+    mut parser := new_parser(lex.tokenize(source))
+    word := parser.parse_word() or { panic(err) }
+    assert ast.word_debug(word) == "dq(lit(') + param(arr; index=lit(0); op=noop) + lit('))"
+}
+
 fn test_parse_param_expansion_default_value_and_assign() {
     mut parser1 := new_parser(lex.tokenize(r'${name:-fallback}'))
     word1 := parser1.parse_word() or { panic(err) }

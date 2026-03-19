@@ -176,6 +176,22 @@ echo $name "$value"')
     assert result.output == 'world 42\n'
 }
 
+fn test_generated_v_can_run_quoted_array_all_items_expansions() {
+    result := transpile_and_run('generated_array_all_items.v', r'arr=()
+arr+=( item1 "it5 ooo" )
+printf "<%s>\n" "${arr[*]}"
+printf "<%s>\n" "${arr[@]}"')
+    assert result.exit_code == 0
+    assert result.output == '<item1 it5 ooo>\n<item1>\n<it5 ooo>\n'
+}
+
+fn test_generated_v_can_run_single_quotes_inside_double_quotes_around_array_index() {
+    source := "arr2=()\narr2+=( aaa )\necho \"'" + r'${arr2[0]}' + "'\"\n"
+    result := transpile_and_run('generated_array_quote_wrap.v', source)
+    assert result.exit_code == 0
+    assert result.output == "'aaa'\n"
+}
+
 fn transpile_and_run(filename string, source string) os.Result {
     tmp_dir := os.join_path('/home/margo/dev/bash2v', 'tests', 'e2e', 'tmp')
     os.mkdir_all(tmp_dir) or { panic(err) }

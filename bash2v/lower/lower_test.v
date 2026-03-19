@@ -86,6 +86,21 @@ echo "${arr[$((i + 1))]}"'))
     assert program_ir_debug(program_ir) == 'set(i=lit(1); kind=scalar) ; set(arr[arith(i + 1)]=arith(i + 4); kind=indexed) ; exec(argv=[lit(echo), dq(param(arr; index=arith(i + 1); op=noop))])'
 }
 
+fn test_lower_array_all_items_expansions() {
+    mut parser := parse.new_parser(lex.tokenize(r'echo "${arr[*]}" "${arr[@]}"'))
+    program := parser.parse_program() or { panic(err) }
+    program_ir := lower_program(program) or { panic(err) }
+    assert program_ir_debug(program_ir) == 'exec(argv=[lit(echo), dq(param(arr; array=*; op=noop)), dq(param(arr; array=@; op=noop))])'
+}
+
+fn test_lower_double_quoted_single_quotes_around_array_index() {
+    source := "echo \"'" + r'${arr[0]}' + "'\""
+    mut parser := parse.new_parser(lex.tokenize(source))
+    program := parser.parse_program() or { panic(err) }
+    program_ir := lower_program(program) or { panic(err) }
+    assert program_ir_debug(program_ir) == "exec(argv=[lit(echo), dq(lit(') + param(arr; index=lit(0); op=noop) + lit('))])"
+}
+
 fn test_lower_if_statement() {
     mut parser := parse.new_parser(lex.tokenize('if test 5 -gt 3; then echo yes; else echo no; fi'))
     program := parser.parse_program() or { panic(err) }

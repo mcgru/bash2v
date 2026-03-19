@@ -81,10 +81,10 @@ fn gen_exec(stmt lower.ExecIR) string {
     }
     mut argv := []string{}
     for item in stmt.argv {
-        argv << gen_word_expr(item)
+        argv << gen_word_value(item)
     }
     if argv.len > 0 {
-        lines << 'bashrt.run_exec(mut st, [${argv.join(", ")}])!'
+        lines << 'bashrt.run_exec_words(mut st, [${argv.join(", ")}])!'
     }
     return lines.join('\n\t')
 }
@@ -94,11 +94,11 @@ fn gen_pipeline(stmt lower.PipelineIR) string {
     for item in stmt.steps {
         mut argv := []string{}
         for word in item.argv {
-            argv << gen_word_expr(word)
+            argv << gen_word_value(word)
         }
         steps << '[${argv.join(", ")}]'
     }
-    return 'bashrt.run_pipeline_words(mut st, [${steps.join(", ")}])!'
+    return 'bashrt.run_pipeline_word_parts(mut st, [${steps.join(", ")}])!'
 }
 
 fn gen_if(stmt lower.IfIR) string {

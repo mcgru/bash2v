@@ -17,8 +17,8 @@ fn test_generate_includes_runtime_calls() {
     generated := generate(lowered)
     assert generated.contains('import bash2v.bashrt')
     assert generated.contains("bashrt.set_scalar(mut st, 'name'")
-    assert generated.contains('bashrt.eval_word(mut st, bashrt.Word')
-    assert generated.contains('bashrt.run_exec(mut st, [')
+    assert generated.contains('bashrt.Word{ fragments:')
+    assert generated.contains('bashrt.run_exec_words(mut st, [')
 }
 
 fn test_generate_pipeline_uses_exec_pipeline() {
@@ -26,8 +26,8 @@ fn test_generate_pipeline_uses_exec_pipeline() {
     program := parser.parse_program() or { panic(err) }
     lowered := lower.lower_program(program) or { panic(err) }
     generated := generate(lowered)
-    assert generated.contains('bashrt.run_pipeline_words(mut st, [')
-    assert generated.contains('[bashrt.eval_word(mut st, bashrt.Word')
+    assert generated.contains('bashrt.run_pipeline_word_parts(mut st, [')
+    assert generated.contains('[bashrt.Word{ fragments:')
 }
 
 fn test_generate_default_value_expansion() {
@@ -71,7 +71,7 @@ fn test_generate_if_statement() {
     lowered := lower.lower_program(program) or { panic(err) }
     generated := generate(lowered)
     assert generated.contains('if bashrt.eval_program_status(mut st, bashrt.EvalProgram')
-    assert generated.contains("bashrt.run_exec(mut st, [bashrt.eval_word(mut st, bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'echo' })] })!, bashrt.eval_word(mut st, bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'yes' })] })!])!")
+    assert generated.contains("bashrt.run_exec_words(mut st, [bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'echo' })] }, bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'yes' })] }])!")
 }
 
 fn test_generate_if_statement_with_elif() {
@@ -109,4 +109,13 @@ fn test_generate_break_and_continue_statements() {
     generated := generate(lowered)
     assert generated.contains('\tcontinue')
     assert generated.contains('\tbreak')
+}
+
+fn test_generate_array_all_items_expansion() {
+    mut parser := parse.new_parser(lex.tokenize(r'echo "${arr[*]}" "${arr[@]}"'))
+    program := parser.parse_program() or { panic(err) }
+    lowered := lower.lower_program(program) or { panic(err) }
+    generated := generate(lowered)
+    assert generated.contains('array_mode: bashrt.ParamArrayMode.all_star')
+    assert generated.contains('array_mode: bashrt.ParamArrayMode.all_at')
 }

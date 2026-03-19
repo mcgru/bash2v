@@ -54,6 +54,12 @@ pub:
 
 pub type ParamOpIR = ParamOpNoneIR | ParamOpLowerAllIR | ParamOpUpperAllIR | ParamOpReplaceOneIR | ParamOpReplaceAllIR | ParamOpLengthIR | ParamOpDefaultValueIR | ParamOpAlternativeValueIR | ParamOpRequiredValueIR
 
+pub enum ParamArrayModeIR {
+    none
+    all_star
+    all_at
+}
+
 pub struct ParamFragmentIR {
 pub:
     name           string
@@ -61,6 +67,7 @@ pub:
     indirection    bool
     enumerate_keys bool
     count_items    bool
+    array_mode     ParamArrayModeIR = .none
     op             ParamOpIR = ParamOpNoneIR{}
 }
 
@@ -165,6 +172,15 @@ pub fn word_fragment_debug(part WordFragmentIR) string {
             }
             if part.count_items {
                 attrs << 'count_items'
+            }
+            match part.array_mode {
+                .all_star {
+                    attrs << 'array=*'
+                }
+                .all_at {
+                    attrs << 'array=@'
+                }
+                .none {}
             }
             if idx := part.index {
                 attrs << 'index=${word_expr_debug(idx)}'

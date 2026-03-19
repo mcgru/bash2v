@@ -114,6 +114,7 @@ fn parse_param_body(raw string) !ast.ParamExpansion {
     mut enumerate_keys := false
     mut count_items := false
     mut indirection := false
+    mut array_mode := ast.ParamArrayMode.none
     mut op := ast.ParamOp(ast.Noop{})
 
     if body.starts_with('#') {
@@ -195,7 +196,13 @@ fn parse_param_body(raw string) !ast.ParamExpansion {
         if body.ends_with(']') && open_idx < body.len - 1 {
             name = body[..open_idx]
             index_text := body[open_idx + 1..body.len - 1]
-            index = parse_raw_word(index_text)
+            if index_text == '@' {
+                array_mode = .all_at
+            } else if index_text == '*' {
+                array_mode = .all_star
+            } else {
+                index = parse_raw_word(index_text)
+            }
         }
     }
 
@@ -211,6 +218,7 @@ fn parse_param_body(raw string) !ast.ParamExpansion {
         indirection: indirection
         enumerate_keys: enumerate_keys
         count_items: count_items
+        array_mode: array_mode
         op: op
     }
 }

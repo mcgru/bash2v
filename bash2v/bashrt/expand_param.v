@@ -1,21 +1,35 @@
 module bashrt
 
 pub fn expand_param(mut state State, param ParamExpansion) !string {
+    return expand_param_values(mut state, param, false)!.join(' ')
+}
+
+pub fn expand_param_values(mut state State, param ParamExpansion, quoted bool) ![]string {
     if param.count_items && param.op is ParamOpLength {
-        return count_items(state, param.name)!
+        return [count_items(state, param.name)!]
     }
     if param.op is ParamOpDefaultValue {
-        return expand_default_value(mut state, param, param.op)!
+        return [expand_default_value(mut state, param, param.op)!]
     }
     if param.op is ParamOpAlternativeValue {
-        return expand_alternative_value(mut state, param, param.op)!
+        return [expand_alternative_value(mut state, param, param.op)!]
     }
     if param.op is ParamOpRequiredValue {
-        return expand_required_value(mut state, param, param.op)!
+        return [expand_required_value(mut state, param, param.op)!]
+    }
+    if param.array_mode != .none {
+        values := resolve_param_array_values(state, param)!
+        if param.array_mode == .all_star {
+            return [values.join(' ')]
+        }
+        if quoted {
+            return values
+        }
+        return values
     }
     mut value := resolve_param_value(mut state, param)!
     value = apply_param_op(mut state, value, param.op)!
-    return value
+    return [value]
 }
 
 fn resolve_param_value(mut state State, param ParamExpansion) !string {
@@ -44,6 +58,42 @@ fn resolve_param_value(mut state State, param ParamExpansion) !string {
     }
 
     return get_scalar(state, param.name)
+}
+
+fn resolve_param_array_values(state State, param ParamExpansion) ![]string {
+    if param.name !in state.vars {
+        return []string{}
+    }
+    value := state.vars[param.name] or { return []string{} }
+    match value {
+        IndexedArray {
+            mut keys := []int{}
+            for key, _ in value.items {
+                keys << key
+            }
+            keys.sort()
+            mut out := []string{}
+            for key in keys {
+                out << value.items[key] or { '' }
+            }
+            return out
+        }
+        AssocArray {
+            mut keys := []string{}
+            for key, _ in value.items {
+                keys << key
+            }
+            keys.sort()
+            mut out := []string{}
+            for key in keys {
+                out << value.items[key] or { '' }
+            }
+            return out
+        }
+        Scalar {
+            return [value.value]
+        }
+    }
 }
 
 fn apply_param_op(mut state State, input string, op ParamOp) !string {

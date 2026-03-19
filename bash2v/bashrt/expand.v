@@ -53,6 +53,12 @@ pub:
 
 pub type ParamOp = ParamOpNone | ParamOpLowerAll | ParamOpUpperAll | ParamOpReplaceOne | ParamOpReplaceAll | ParamOpLength | ParamOpDefaultValue | ParamOpAlternativeValue | ParamOpRequiredValue
 
+pub enum ParamArrayMode {
+    none
+    all_star
+    all_at
+}
+
 pub struct ParamExpansion {
 pub:
     name           string
@@ -60,6 +66,7 @@ pub:
     indirection    bool
     enumerate_keys bool
     count_items    bool
+    array_mode     ParamArrayMode = .none
     op             ParamOp = ParamOpNone{}
 }
 
@@ -83,31 +90,50 @@ pub:
 }
 
 pub fn eval_word(mut state State, word Word) !string {
-    mut out := []string{}
-    for fragment in word.fragments {
-        out << eval_fragment(mut state, fragment)!
-    }
-    return out.join('')
+    return eval_word_values(mut state, word)!.join(' ')
 }
 
-fn eval_fragment(mut state State, fragment WordFragment) !string {
+pub fn eval_word_values(mut state State, word Word) ![]string {
+    return eval_fragments_values(mut state, word.fragments, false)
+}
+
+fn eval_fragments_values(mut state State, fragments []WordFragment, quoted bool) ![]string {
+    if fragments.len == 0 {
+        return ['']
+    }
+    mut acc := ['']
+    for fragment in fragments {
+        values := eval_fragment_values(mut state, fragment, quoted)!
+        if values.len == 0 {
+            return []string{}
+        }
+        mut next := []string{}
+        for prefix in acc {
+            for value in values {
+                next << prefix + value
+            }
+        }
+        acc = next.clone()
+    }
+    return acc
+}
+
+fn eval_fragment_values(mut state State, fragment WordFragment, quoted bool) ![]string {
     return match fragment {
         LiteralFragment {
-            fragment.text
+            [fragment.text]
         }
         DoubleQuotedFragment {
-            eval_word(mut state, Word{
-                fragments: fragment.parts
-            })!
+            eval_fragments_values(mut state, fragment.parts, true)!
         }
         ParamExpansion {
-            expand_param(mut state, fragment)!
+            expand_param_values(mut state, fragment, quoted)!
         }
         CommandSubstFragment {
-            eval_command_subst(mut state, fragment)!
+            [eval_command_subst(mut state, fragment)!]
         }
         ArithmeticFragment {
-            eval_arithmetic(mut state, fragment.expr)!
+            [eval_arithmetic(mut state, fragment.expr)!]
         }
     }
 }

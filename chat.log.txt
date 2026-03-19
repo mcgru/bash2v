@@ -607,3 +607,49 @@
 
 [2026-03-19 11:14:05 UTC] DECISION
 - `make static` теперь является кратким documented способом собрать переносимый бинарник, который затем можно использовать вместе с `transpile --bundle-runtime`.
+
+[2026-03-19 11:42:00 UTC] USER
+- Сообщение о регрессиях:
+- `echo "${arr2[@]}"` не совпадает с Bash semantics для массива
+- `echo "'${arr[0]}'"` ломает транспиляцию / компиляцию
+- Запрос: исправить обе проблемы
+
+[2026-03-19 11:42:00 UTC] ASSISTANT SUMMARY
+- Исправлены две связанные проблемы в expansion/quoting layer.
+- Для `${arr[*]}` и `${arr[@]}`:
+- в AST/IR/runtime добавлен явный `array_mode`
+- parser теперь различает:
+- `array=*`
+- `array=@`
+- runtime word evaluation расширен до multi-value expansion:
+- добавлен `eval_word_values(...)`
+- top-level command execution больше не разворачивает argv через одиночный `eval_word(...)`
+- вместо этого generated code передаёт `[]bashrt.Word` в runtime, а runtime уже строит итоговый argv с учётом multi-value expansions
+- Благодаря этому:
+- `"${arr[*]}"` остаётся одним аргументом с join по пробелу
+- `"${arr[@]}"` становится несколькими аргументами, как в Bash
+- Для quoting-багa с `echo "'${arr[0]}'"`:
+- lexer сделан mode-aware для `double_quoted`
+- одинарная кавычка внутри `"` больше не лексится как shell single-quoted token
+- теперь она остаётся literal-fragment, а `${arr[0]}` внутри тех же `"` корректно распознаётся как expansion
+
+[2026-03-19 11:42:00 UTC] STATUS
+- Добавлены регрессионные проверки в:
+- `bash2v/lex/lexer_test.v`
+- `bash2v/parse/parser_test.v`
+- `bash2v/lower/lower_test.v`
+- `bash2v/codegen/codegen_test.v`
+- `bash2v/bashrt/runtime_test.v`
+- `tests/e2e/compile_run_test.v`
+- `tests/oracle/compare_test.v`
+- Bash-oracle подтверждает:
+- `printf "<%s>\n" "${arr[*]}"`
+- `printf "<%s>\n" "${arr[@]}"`
+- `echo "'${arr2[0]}'"`
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+
+[2026-03-19 11:42:00 UTC] DECISION
+- Execution path теперь готов к другим multi-value expansion scenarios, не только к quoted array `@`.
+- Следующий логичный шаг: распространять этот же подход на более общую shell word-splitting semantics и затем на `&&` / `||`.

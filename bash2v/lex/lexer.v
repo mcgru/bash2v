@@ -44,7 +44,7 @@ pub fn (mut lexer Lexer) next_token() Token {
     if is_horizontal_space(ch) {
         return lexer.scan_whitespace()
     }
-    if ch == `'` {
+    if ch == `'` && lexer.mode != .double_quoted {
         return lexer.scan_single_quoted()
     }
     if ch == `"` {
@@ -128,7 +128,7 @@ fn (mut lexer Lexer) scan_word() Token {
     start_pos := lexer.position
     for lexer.pos < lexer.source.len {
         ch := lexer.peek(0)
-        if is_word_boundary(ch) {
+        if lexer.is_word_boundary(ch) {
             break
         }
         lexer.bump()
@@ -145,6 +145,9 @@ fn (mut lexer Lexer) scan_one(kind TokenKind, width int) Token {
     start_pos := lexer.position
     for _ in 0 .. width {
         lexer.bump()
+    }
+    if kind == .double_quote {
+        lexer.mode = if lexer.mode == .double_quoted { .normal } else { .double_quoted }
     }
     return Token{
         kind: kind
@@ -183,4 +186,11 @@ fn is_word_boundary(ch u8) bool {
         || ch == `&`
         || ch == `;`
         || ch == `=`
+}
+
+fn (lexer Lexer) is_word_boundary(ch u8) bool {
+    if lexer.mode == .double_quoted && ch == `'` {
+        return false
+    }
+    return is_word_boundary(ch)
 }

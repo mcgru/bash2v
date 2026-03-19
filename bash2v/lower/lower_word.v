@@ -34,14 +34,7 @@ fn lower_word_part(part ast.WordPart) !WordFragmentIR {
             })
         }
         ast.ParamExpansion {
-            WordFragmentIR(ParamFragmentIR{
-                name: part.name
-                index: lower_optional_word(part.index)
-                indirection: part.indirection
-                enumerate_keys: part.enumerate_keys
-                count_items: part.count_items
-                op: lower_param_op(part.op)!
-            })
+            WordFragmentIR(lower_param_fragment(part)!)
         }
         ast.CommandSubstitution {
             WordFragmentIR(CommandSubstFragmentIR{
@@ -54,6 +47,22 @@ fn lower_word_part(part ast.WordPart) !WordFragmentIR {
                 expr: part.expr
             })
         }
+    }
+}
+
+fn lower_param_fragment(part ast.ParamExpansion) !ParamFragmentIR {
+    return ParamFragmentIR{
+        name: part.name
+        index: lower_optional_word(part.index)
+        indirection: part.indirection
+        enumerate_keys: part.enumerate_keys
+        count_items: part.count_items
+        array_mode: match part.array_mode {
+            .none { ParamArrayModeIR.none }
+            .all_star { ParamArrayModeIR.all_star }
+            .all_at { ParamArrayModeIR.all_at }
+        }
+        op: lower_param_op(part.op)!
     }
 }
 

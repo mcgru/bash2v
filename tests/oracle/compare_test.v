@@ -206,3 +206,28 @@ echo $name "$value"'
     assert transpiled_result.status == 0
     assert transpiled_result.stdout == bash_result.stdout
 }
+
+fn test_bash_and_transpiled_match_for_quoted_array_all_items_expansions() {
+    source := r'arr=()
+arr+=( item1 "it5 ooo" )
+printf "<%s>\n" "${arr[*]}"
+printf "<%s>\n" "${arr[@]}"'
+
+    bash_result := run_bash_source('array_all_items_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('array_all_items_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}
+
+fn test_bash_and_transpiled_match_for_single_quotes_inside_double_quotes_around_array_index() {
+    source := "arr2=()\narr2+=( aaa )\necho \"'" + r'${arr2[0]}' + "'\"\n"
+
+    bash_result := run_bash_source('array_quote_wrap_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('array_quote_wrap_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}

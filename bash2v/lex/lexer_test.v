@@ -26,3 +26,15 @@ fn test_plain_dollar_variable_is_split_into_dollar_and_word() {
     assert tokens[3].kind == .word
     assert tokens[3].text == 'name'
 }
+
+fn test_single_quote_inside_double_quotes_is_literal_text() {
+    source := "\"" + "'" + r'${arr[0]}' + "'" + "\""
+    tokens := tokenize(source)
+    assert tokens[0].kind == .double_quote
+    assert tokens[1].kind == .word
+    assert tokens[1].text == "'"
+    assert tokens[2].kind == .dollar_brace_open
+    assert tokens[8].kind == .word
+    assert tokens[8].text == "'"
+    assert tokens[9].kind == .double_quote
+}

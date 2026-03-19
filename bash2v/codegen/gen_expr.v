@@ -3,11 +3,15 @@ module codegen
 import bash2v.lower
 
 pub fn gen_word_expr(expr lower.WordExpr) string {
+    return 'bashrt.eval_word(mut st, ${gen_word_value(expr)})!'
+}
+
+fn gen_word_value(expr lower.WordExpr) string {
     mut parts := []string{}
     for part in expr.parts {
         parts << gen_word_fragment(part)
     }
-    return 'bashrt.eval_word(mut st, bashrt.Word{ fragments: [${parts.join(", ")}] })!'
+    return 'bashrt.Word{ fragments: [${parts.join(", ")}] }'
 }
 
 fn gen_word_fragment(part lower.WordFragmentIR) string {
@@ -40,7 +44,12 @@ fn gen_param_fragment(part lower.ParamFragmentIR) string {
     } else {
         'none'
     }
-    return 'bashrt.ParamExpansion{ name: ${quote_v_string(part.name)}, index: ${index_expr}, indirection: ${part.indirection}, enumerate_keys: ${part.enumerate_keys}, count_items: ${part.count_items}, op: ${gen_param_op(part.op)} }'
+    array_mode := match part.array_mode {
+        .none { 'bashrt.ParamArrayMode.none' }
+        .all_star { 'bashrt.ParamArrayMode.all_star' }
+        .all_at { 'bashrt.ParamArrayMode.all_at' }
+    }
+    return 'bashrt.ParamExpansion{ name: ${quote_v_string(part.name)}, index: ${index_expr}, indirection: ${part.indirection}, enumerate_keys: ${part.enumerate_keys}, count_items: ${part.count_items}, array_mode: ${array_mode}, op: ${gen_param_op(part.op)} }'
 }
 
 fn gen_word_expr_parts(expr lower.WordExpr) string {
@@ -145,7 +154,7 @@ fn gen_eval_exec(stmt lower.ExecIR) string {
     }
     mut argv := []string{}
     for item in stmt.argv {
-        argv << 'bashrt.Word{ fragments: [${gen_word_expr_parts(item)}] }'
+        argv << gen_word_value(item)
     }
     return 'bashrt.EvalExec{ assignments: [${assignments.join(", ")}], argv: [${argv.join(", ")}] }'
 }

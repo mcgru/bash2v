@@ -134,6 +134,66 @@ fn test_eval_word_with_array_item_count() {
     assert map_count == '2'
 }
 
+fn test_eval_word_values_with_array_all_items_modes() {
+    mut state := new_state()
+    append_indexed_values(mut state, 'arr', ['item1', 'it5 ooo'])
+
+    star := eval_word_values(mut state, Word{
+        fragments: [
+            WordFragment(DoubleQuotedFragment{
+                parts: [
+                    WordFragment(ParamExpansion{
+                        name: 'arr'
+                        array_mode: .all_star
+                    }),
+                ]
+            }),
+        ]
+    }) or { panic(err) }
+
+    at := eval_word_values(mut state, Word{
+        fragments: [
+            WordFragment(DoubleQuotedFragment{
+                parts: [
+                    WordFragment(ParamExpansion{
+                        name: 'arr'
+                        array_mode: .all_at
+                    }),
+                ]
+            }),
+        ]
+    }) or { panic(err) }
+
+    assert star == ['item1 it5 ooo']
+    assert at == ['item1', 'it5 ooo']
+}
+
+fn test_eval_word_with_single_quotes_inside_double_quotes() {
+    mut state := new_state()
+    set_indexed(mut state, 'arr', '0', 'aaa')
+    value := eval_word(mut state, Word{
+        fragments: [
+            WordFragment(DoubleQuotedFragment{
+                parts: [
+                    WordFragment(LiteralFragment{
+                        text: "'"
+                    }),
+                    WordFragment(ParamExpansion{
+                        name: 'arr'
+                        index: Word{
+                            fragments: [WordFragment(LiteralFragment{ text: '0' })]
+                        }
+                    }),
+                    WordFragment(LiteralFragment{
+                        text: "'"
+                    }),
+                ]
+            }),
+        ]
+    }) or { panic(err) }
+    assert value == "'aaa'"
+}
+
 fn test_eval_word_with_command_substitution_captures_stdout() {
     mut state := new_state()
     value := eval_word(mut state, Word{

@@ -22,12 +22,19 @@ pub:
 
 pub struct ParamExpansion {
 pub:
-    name        string
-    index       ?Word
-    indirection bool
+    name           string
+    index          ?Word
+    indirection    bool
     enumerate_keys bool
-    count_items bool
-    op          ParamOp = Noop{}
+    count_items    bool
+    array_mode     ParamArrayMode = .none
+    op             ParamOp = Noop{}
+}
+
+pub enum ParamArrayMode {
+    none
+    all_star
+    all_at
 }
 
 pub struct CommandSubstitution {
