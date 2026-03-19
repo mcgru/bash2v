@@ -196,3 +196,71 @@
 
 [2026-03-19 08:17:03 UTC] DECISION
 - Следующий логичный шаг: продолжать parameter expansion family в сторону `${var:+alt}` / `${var:?message}`, либо переходить к arithmetic expansion и shell conditions, но уже без возврата к parser-only work.
+
+[2026-03-19 08:27:24 UTC] USER
+- `Добавляй.`
+
+[2026-03-19 08:27:24 UTC] ASSISTANT SUMMARY
+- Реализована end-to-end поддержка `${var:+alt}` и `${var:?message}`.
+- `${var:+alt}` теперь возвращает alternate только для set-and-non-null variables, а для unset/null даёт пустую строку.
+- `${var:?message}` теперь прерывает выполнение generated V с ошибкой, если variable unset/null, и возвращает исходное значение, если variable задана.
+- Новые операции добавлены во все слои: AST, lowering IR, codegen, runtime, parser debug/output.
+
+[2026-03-19 08:27:24 UTC] STATUS
+- Добавлены и проходят проверки в:
+- `bash2v/parse/parser_test.v`
+- `bash2v/lower/lower_test.v`
+- `bash2v/codegen/codegen_test.v`
+- `bash2v/bashrt/runtime_test.v`
+- `tests/e2e/compile_run_test.v`
+- `tests/oracle/compare_test.v`
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+
+[2026-03-19 08:27:24 UTC] DECISION
+- Для `${var:?message}` oracle не сравнивает stderr байт-в-байт с Bash, а проверяет более устойчивые свойства: non-zero status, пустой stdout и наличие message substring.
+- Следующий логичный шаг: arithmetic expansion `$((...))`, либо shell condition surface (`test`, `[ ... ]`, `[[ ... ]]`) с тем же end-to-end подходом.
+
+[2026-03-19 08:38:24 UTC] USER
+- `Спланируй и реализуй инкрементальное присвоение в переменную и в массив...`
+- Уточнены целевые сценарии:
+- `VAR1=qweqwe; VAR1+="asdasd"` -> `VAR1=qweqweasdasd`
+- `ARR1=(); ARR1+=( item1 item2 ); ARR1+=( it4 "it5 ooo" )`
+
+[2026-03-19 08:38:24 UTC] ASSISTANT SUMMARY
+- Реализована append-semantics для scalar и indexed arrays.
+- Parser теперь понимает:
+- `VAR+=value`
+- `ARR=()`
+- `ARR+=( item1 item2 )`
+- `ARR+=( it4 "it5 ooo" )`
+- Assignment model расширен флагами `append` и `compound`, а для compound assignments хранится список `items`, а не один `Word`.
+- Runtime получил helpers:
+- `append_scalar`
+- `set_indexed_values`
+- `append_indexed_values`
+- `append_indexed_at`
+- `append_assoc`
+- Codegen и nested command-substitution eval model приведены к новой assignment representation.
+
+[2026-03-19 08:38:24 UTC] STATUS
+- Добавлены и проходят проверки в:
+- `bash2v/parse/parser_test.v`
+- `bash2v/lower/lower_test.v`
+- `bash2v/codegen/codegen_test.v`
+- `bash2v/bashrt/runtime_test.v`
+- `tests/e2e/compile_run_test.v`
+- `tests/oracle/compare_test.v`
+- Append behavior подтверждён e2e и oracle compare против Bash:
+- `VAR1+="asdasd"`
+- `ARR1=()`
+- `ARR1+=( item1 item2 )`
+- `ARR1+=( it4 "it5 ooo" )`
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+
+[2026-03-19 08:38:24 UTC] DECISION
+- На текущем этапе append полностью поддержан для scalar variables и indexed arrays.
+- Следующий логичный шаг: arithmetic expansion `$((...))`, потому что она часто сочетается и с обычными assignment expressions, и с array indexing.
