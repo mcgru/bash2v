@@ -28,10 +28,28 @@ v -o ./bin/bash2v ./cmd/bash2v
 
 Note: in this repository the path `./bash2v` is already occupied by the source module directory `./bash2v/`, so the practical binary path here is `./bin/bash2v`.
 
-With `make`, the portable static-bundle-oriented build target is:
+With `make`, the main production build target is:
 
 ```bash
-make static
+make main
+```
+
+It writes:
+
+```text
+./bin/bash2v
+```
+
+For a non-`-prod` build:
+
+```bash
+make simple
+```
+
+For the portable bundle-oriented binary:
+
+```bash
+make bundle
 ```
 
 It writes:
@@ -40,12 +58,14 @@ It writes:
 ./bin/bash2v_static
 ```
 
+`make static` remains as an alias of `make bundle`.
+
 ## Transpile And Run
 
 Given a Bash script `b.sh`, transpile it into `b.v` like this:
 
 ```bash
-./bin/bash2v transpile ./b.sh -o ./b.v
+./bin/bash2v ./b.sh -o ./b.v
 ```
 
 Then run the generated V program from the repository root:
@@ -57,7 +77,7 @@ v run ./b.v
 This has been verified end to end on the current tree:
 
 ```bash
-./bin/bash2v transpile ./examples/basic.bash -o ./examples/basic.generated.v
+./bin/bash2v ./examples/basic.bash -o ./examples/basic.generated.v
 v run ./examples/basic.generated.v
 ```
 
@@ -84,7 +104,7 @@ In other words, for a normal checkout of this repository the minimal workflow is
 ```bash
 mkdir -p bin
 v -prod -o ./bin/bash2v ./cmd/bash2v
-./bin/bash2v transpile ./b.sh -o ./b.v
+./bin/bash2v ./b.sh -o ./b.v
 v run ./b.v
 ```
 
@@ -95,10 +115,10 @@ If you move only the `bash2v` binary to another server, then:
 - for `hello.sh -> hello.v` you only need that binary
 - for `v run ./hello.v` you also need the runtime modules available to V
 
-The simplest portable workflow is `--bundle-runtime`:
+The simplest portable workflow is `--bundle-runtime` or `-b`:
 
 ```bash
-./bash2v transpile --bundle-runtime ./hello.sh -o ./out/hello.v
+./bash2v -b ./hello.sh -o ./out/hello.v
 cd ./out
 v run ./hello.v
 ```
@@ -134,5 +154,5 @@ If you do not use `--bundle-runtime`, then you must provide `bash2v.bashrt` and 
 If you do not need the intermediate `b.v` file, the CLI can also transpile and execute a Bash script directly:
 
 ```bash
-./bin/bash2v run ./b.sh
+./bin/bash2v -r ./b.sh
 ```

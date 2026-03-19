@@ -34,7 +34,7 @@ fn test_transpile_with_bundle_runtime_writes_self_contained_bundle() {
     output_path := os.join_path(tmp_dir, 'hello.v')
 
     os.write_file(input_path, 'echo hello-bundled\n') or { panic(err) }
-    exit_code := cli.run(['bash2v', '-t', '--bundle-runtime', input_path]) or {
+    exit_code := cli.run(['bash2v', '-t', '-b', input_path]) or {
         panic(err)
     }
 

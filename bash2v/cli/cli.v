@@ -53,7 +53,7 @@ fn parse_args(args []string) !Config {
     ast_mode := fp.bool('ast', `a`, false, 'print the parsed AST', flag.FlagConfig{})
     ir_mode := fp.bool('ir', `i`, false, 'print the lowered IR', flag.FlagConfig{})
     run_mode := fp.bool('run', `r`, false, 'transpile and execute the input script', flag.FlagConfig{})
-    bundle_runtime := fp.bool('bundle-runtime', 0, false,
+    bundle_runtime := fp.bool('bundle-runtime', `b`, false,
         'write bundled runtime files next to the transpiled output', flag.FlagConfig{})
     output := fp.string('output', `o`, '', 'write generated V to this file', flag.FlagConfig{
         val_desc: '<file>'

@@ -43,7 +43,7 @@ fn test_parse_args_rejects_multiple_mode_flags() {
 }
 
 fn test_parse_args_keeps_explicit_output_and_bundle_runtime() {
-    cfg := parse_args(['bash2v', '-t', '--bundle-runtime', 'script.sh', '-o', 'out/result.v']) or {
+    cfg := parse_args(['bash2v', '-t', '-b', 'script.sh', '-o', 'out/result.v']) or {
         panic(err)
     }
 
