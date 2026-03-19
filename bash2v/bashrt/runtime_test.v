@@ -316,6 +316,13 @@ fn test_eval_word_values_with_unquoted_command_substitution_splits_fields() {
     assert quoted_values == ['alpha beta']
 }
 
+fn test_case_match_supports_literal_star_question_and_no_match() {
+    assert case_match('foo.txt', '*.txt')
+    assert case_match('ab', 'a?')
+    assert case_match('foo', 'foo')
+    assert !case_match('foo.txt', '*.log')
+}
+
 fn test_eval_word_with_single_quotes_inside_double_quotes() {
     mut state := new_state()
     set_indexed(mut state, 'arr', '0', 'aaa')

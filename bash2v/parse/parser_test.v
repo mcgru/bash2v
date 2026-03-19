@@ -228,6 +228,22 @@ fn test_parse_for_in_statement() {
     assert ast.program_debug(program) == 'for(item in lit(one) dq(lit(two) + lit( ) + lit(words)) lit(three) => cmd(words=[lit(echo), dq(param(item; op=noop))]))'
 }
 
+fn test_parse_case_statement() {
+    mut parser := new_parser(lex.tokenize(r'case "$name" in
+*.log)
+echo log
+;;
+foo|bar)
+echo hit
+;;
+*)
+echo other
+;;
+esac'))
+    program := parser.parse_program() or { panic(err) }
+    assert ast.program_debug(program) == 'case(dq(param(name; op=noop)) => lit(*.log) => cmd(words=[lit(echo), lit(log)]) ; lit(foo) | lit(bar) => cmd(words=[lit(echo), lit(hit)]) ; lit(*) => cmd(words=[lit(echo), lit(other)]))'
+}
+
 fn test_parse_break_and_continue_statements() {
     mut parser := new_parser(lex.tokenize('while true; do continue; break; done'))
     program := parser.parse_program() or { panic(err) }

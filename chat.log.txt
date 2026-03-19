@@ -746,3 +746,77 @@
 - quoted `"${arr[*]}"` -> один аргумент с join по пробелу
 - unquoted `${arr[*]}` в `for ... in` -> split по shell fields
 - Документация должна ссылаться на option-style CLI и на эти уже проверенные array/for-in guarantees.
+
+[2026-03-19 13:49:57 UTC] ASSISTANT SUMMARY
+- Multi-value expansion path распространён на более общую shell word-splitting semantics.
+- В `bashrt/expand.v` и `bashrt/expand_param.v` добавлена общая finalization path с учётом quoted/unquoted частей слова.
+- Подтверждено поведение Bash-like field splitting для:
+- unquoted scalar expansion
+- unquoted command substitution
+- Уже добавленные array all-items semantics сохранены:
+- quoted `"${arr[@]}"`
+- quoted `"${arr[*]}"`
+- unquoted `${arr[*]}` в `for ... in`
+
+[2026-03-19 13:49:57 UTC] STATUS
+- Проверено:
+- `v test /home/margo/dev/bash2v/bash2v`
+- `v test /home/margo/dev/bash2v/tests/e2e/compile_run_test.v`
+- `v test /home/margo/dev/bash2v/tests/oracle/compare_test.v`
+
+[2026-03-19 13:49:57 UTC] ASSISTANT SUMMARY
+- Добавлена поддержка `&&` / `||` short-circuit lists по всему стеку:
+- AST / parser / lowering / codegen / runtime
+- В runtime добавлен `run_and_or(...)` и short-circuit status propagation.
+- Top-level execution semantics скорректирована:
+- nonzero status больше не делает немедленный `exit(...)` на первой команде
+- итоговый exit code теперь отложен до конца `main()` через `last_status`
+- Это устранило структурную проблему для `false && ...`, `if`, `while` и похожих конструкций.
+
+[2026-03-19 13:49:57 UTC] STATUS
+- Для `&&` / `||` добавлены проверки в:
+- `bash2v/lex/lexer_test.v`
+- `bash2v/parse/parser_test.v`
+- `bash2v/lower/lower_test.v`
+- `bash2v/codegen/codegen_test.v`
+- `tests/e2e/compile_run_test.v`
+- `tests/oracle/compare_test.v`
+
+[2026-03-19 13:49:57 UTC] ASSISTANT SUMMARY
+- Добавлена поддержка `case ... in ... ;; esac`.
+- Реализованы:
+- `CaseStmt` / `CaseIR`
+- parser для case arms и pattern lists
+- codegen для `case`
+- runtime helper `bashrt.case_match(...)`
+- Поддерживаются common glob-style patterns с `*` и `?`.
+
+[2026-03-19 13:49:57 UTC] BUG
+- После первого внедрения `case` обнаружен parser loop на multiline `case`.
+- Причина:
+- `parse_case_body()` после body-команды вызывал `skip_statement_separators()`
+- этим съедался arm terminator `;;`
+- следующий arm начинал парситься как продолжение предыдущего body
+- затем parser застревал на `)` без продвижения
+
+[2026-03-19 13:49:57 UTC] FIX
+- В `parse_case_body()` arm boundary теперь определяется через lookahead helper, который видит `;;` / `esac` через переводы строк.
+- Generic separator skipping внутри case body больше не проглатывает `;;`.
+- Parser regression переведён на реальный multiline `case` с fallback arm `*`.
+
+[2026-03-19 13:49:57 UTC] STATUS
+- После фикса подтверждено:
+- `v test /home/margo/dev/bash2v/bash2v`
+- `v test /home/margo/dev/bash2v/tests/e2e/compile_run_test.v`
+- `v test /home/margo/dev/bash2v/tests/oracle/compare_test.v`
+- `make simple`
+- `./bin/bash2v -r tests/e2e/tmp/case_repro.bash`
+- Результат repro:
+- `hit`
+- `after`
+
+[2026-03-19 13:49:57 UTC] DECISION
+- README синхронизирован с:
+- общей field-splitting semantics
+- поддержкой `&&` / `||`
+- поддержкой `case`

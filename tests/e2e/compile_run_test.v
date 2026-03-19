@@ -198,6 +198,29 @@ fi')
     assert result.output == 'yes\nok\ncond\n'
 }
 
+fn test_generated_v_can_run_case_statement() {
+    result := transpile_and_run('generated_case.v', r'name=foo.txt
+case "$name" in
+*.log)
+echo log
+;;
+foo.txt|bar.txt)
+echo hit
+;;
+*)
+echo other
+;;
+esac
+case z in
+foo)
+echo no
+;;
+esac
+echo after')
+    assert result.exit_code == 0
+    assert result.output == 'hit\nafter\n'
+}
+
 fn test_generated_v_can_run_plain_dollar_expansion() {
     result := transpile_and_run('generated_plain_dollar.v', r'name=world
 value=42

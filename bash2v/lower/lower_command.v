@@ -36,6 +36,9 @@ pub fn lower_stmt(stmt ast.Stmt) ![]StmtIR {
         ast.WhileStmt {
             return [StmtIR(lower_while_stmt(stmt)!)]
         }
+        ast.CaseStmt {
+            return [StmtIR(lower_case_stmt(stmt)!)]
+        }
         ast.ForInStmt {
             return [StmtIR(lower_for_in_stmt(stmt)!)]
         }
@@ -84,6 +87,9 @@ fn lower_pipeline(pipeline ast.Pipeline) !PipelineIR {
             ast.WhileStmt {
                 return error('while statements are not valid pipeline steps')
             }
+            ast.CaseStmt {
+                return error('case statements are not valid pipeline steps')
+            }
             ast.ForInStmt {
                 return error('for statements are not valid pipeline steps')
             }
@@ -129,6 +135,24 @@ fn lower_while_stmt(stmt ast.WhileStmt) !WhileIR {
     return WhileIR{
         condition: lower_stmt_block(stmt.condition)!
         body: lower_stmt_block(stmt.body)!
+    }
+}
+
+fn lower_case_stmt(stmt ast.CaseStmt) !CaseIR {
+    mut arms := []CaseArmIR{}
+    for arm in stmt.arms {
+        mut patterns := []WordExpr{}
+        for pattern in arm.patterns {
+            patterns << lower_word(pattern)!
+        }
+        arms << CaseArmIR{
+            patterns: patterns
+            body: lower_stmt_block(arm.body)!
+        }
+    }
+    return CaseIR{
+        subject: lower_word(stmt.subject)!
+        arms: arms
     }
 }
 

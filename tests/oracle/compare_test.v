@@ -239,6 +239,34 @@ fi'
     assert transpiled_result.stdout == bash_result.stdout
 }
 
+fn test_bash_and_transpiled_match_for_case_statement() {
+    source := r'name=foo.txt
+case "$name" in
+*.log)
+echo log
+;;
+foo.txt|bar.txt)
+echo hit
+;;
+*)
+echo other
+;;
+esac
+case z in
+foo)
+echo no
+;;
+esac
+echo after'
+
+    bash_result := run_bash_source('case_stmt_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('case_stmt_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}
+
 fn test_bash_and_transpiled_match_for_plain_dollar_expansion() {
     source := r'name=world
 value=42

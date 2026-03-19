@@ -112,6 +112,16 @@ fn test_generate_for_in_statement() {
     assert generated.contains("bashrt.set_scalar(mut st, 'item', bash2v_item_item)")
 }
 
+fn test_generate_case_statement() {
+    mut parser := parse.new_parser(lex.tokenize(r'case "$name" in *.log) echo log ;; foo|bar) echo hit ;; esac'))
+    program := parser.parse_program() or { panic(err) }
+    lowered := lower.lower_program(program) or { panic(err) }
+    generated := generate(lowered)
+    assert generated.contains('bashrt.case_match(')
+    assert generated.contains('mut bash2v_case_matched := false')
+    assert generated.contains('bashrt.set_last_status(mut st, 0)')
+}
+
 fn test_generate_break_and_continue_statements() {
     mut parser := parse.new_parser(lex.tokenize('while true; do continue; break; done'))
     program := parser.parse_program() or { panic(err) }

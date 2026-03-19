@@ -10,6 +10,7 @@ pub fn gen_stmt(stmt lower.StmtIR) string {
         lower.AndOrIR { gen_and_or(stmt) }
         lower.IfIR { gen_if(stmt) }
         lower.WhileIR { gen_while(stmt) }
+        lower.CaseIR { gen_case(stmt) }
         lower.ForInIR { gen_for_in(stmt) }
         lower.BreakIR { 'break' }
         lower.ContinueIR { 'continue' }
@@ -168,6 +169,34 @@ fn gen_for_in(stmt lower.ForInIR) string {
     }
     lines << '\t}'
     lines << '\tif !bash2v_for_ran {'
+    lines << '\t\tbashrt.set_last_status(mut st, 0)'
+    lines << '\t}'
+    lines << '}'
+    return lines.join('\n')
+}
+
+fn gen_case(stmt lower.CaseIR) string {
+    subject_name := 'bash2v_case_subject'
+    matched_name := 'bash2v_case_matched'
+    mut lines := []string{}
+    lines << '{'
+    lines << '\t${subject_name} := ${gen_word_expr(stmt.subject)}'
+    lines << '\tmut ${matched_name} := false'
+    for idx, arm in stmt.arms {
+        mut checks := []string{}
+        for pattern in arm.patterns {
+            checks << 'bashrt.case_match(${subject_name}, ${gen_word_expr(pattern)})'
+        }
+        prefix := if idx == 0 { '\tif' } else { '\telse if' }
+        lines << '${prefix} !${matched_name} && (${checks.join(" || ")}) {'
+        lines << '\t\t${matched_name} = true'
+        lines << '\t\tbashrt.set_last_status(mut st, 0)'
+        for item in arm.body.stmts {
+            lines << indent_block(gen_stmt(item), '\t\t')
+        }
+        lines << '\t}'
+    }
+    lines << '\tif !${matched_name} {'
     lines << '\t\tbashrt.set_last_status(mut st, 0)'
     lines << '\t}'
     lines << '}'

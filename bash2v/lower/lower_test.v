@@ -136,6 +136,13 @@ fn test_lower_for_in_statement() {
     assert program_ir_debug(program_ir) == 'for(item in lit(one) dq(lit(two) + lit( ) + lit(words)) lit(three) => exec(argv=[lit(echo), dq(param(item; op=noop))]))'
 }
 
+fn test_lower_case_statement() {
+    mut parser := parse.new_parser(lex.tokenize(r'case "$name" in *.log) echo log ;; foo|bar) echo hit ;; esac'))
+    program := parser.parse_program() or { panic(err) }
+    program_ir := lower_program(program) or { panic(err) }
+    assert program_ir_debug(program_ir) == 'case(dq(param(name; op=noop)) => lit(*.log) => exec(argv=[lit(echo), lit(log)]) ; lit(foo) | lit(bar) => exec(argv=[lit(echo), lit(hit)]))'
+}
+
 fn test_lower_break_and_continue_statements() {
     mut parser := parse.new_parser(lex.tokenize('while true; do continue; break; done'))
     program := parser.parse_program() or { panic(err) }

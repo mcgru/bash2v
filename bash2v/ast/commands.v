@@ -73,6 +73,18 @@ pub:
     body      []Stmt
 }
 
+pub struct CaseArm {
+pub:
+    patterns []Word
+    body     []Stmt
+}
+
+pub struct CaseStmt {
+pub:
+    subject Word
+    arms    []CaseArm
+}
+
 pub struct ForInStmt {
 pub:
     name  string

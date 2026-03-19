@@ -86,6 +86,21 @@ pub fn stmt_debug(stmt Stmt) string {
             }
             'while(${cond.join(" ; ")} => ${body.join(" ; ")})'
         }
+        CaseStmt {
+            mut arms := []string{}
+            for arm in stmt.arms {
+                mut patterns := []string{}
+                for pattern in arm.patterns {
+                    patterns << word_debug(pattern)
+                }
+                mut body := []string{}
+                for item in arm.body {
+                    body << stmt_debug(item)
+                }
+                arms << '${patterns.join(" | ")} => ${body.join(" ; ")}'
+            }
+            'case(${word_debug(stmt.subject)} => ${arms.join(" ; ")})'
+        }
         ForInStmt {
             mut items := []string{}
             for item in stmt.items {

@@ -185,13 +185,15 @@ So outside this checkout you must either:
 
 If you do not use `--bundle-runtime`, then you must provide `bash2v.bashrt` and `v_scr` yourself.
 
-## Array Expansion Notes
+## Expansion Notes
 
-The current runtime and codegen are verified against Bash for these array cases:
+The current runtime and codegen are verified against Bash for these expansion and splitting cases:
 
 - `"${arr[@]}"` preserves element boundaries
 - `"${arr[*]}"` becomes one argument joined by spaces
 - unquoted `${arr[*]}` in `for ... in` is split into shell fields
+- unquoted scalar expansion performs shell-like field splitting
+- unquoted command substitution performs shell-like field splitting
 
 For example:
 
@@ -209,6 +211,39 @@ i=i1
 i=i2
 i=i3 i4
 ```
+
+For example:
+
+```bash
+value="one two"
+printf "<%s>\n" $value "$value"
+printf "<%s>\n" $(echo alpha beta)
+printf "<%s>\n" "$(echo alpha beta)"
+```
+
+prints:
+
+```text
+<one>
+<two>
+<one two>
+<alpha>
+<beta>
+<alpha beta>
+```
+
+## Control Flow Notes
+
+The current parser, lowerer, codegen, and runtime are verified for:
+
+- `if` / `elif` / `else`
+- `while`
+- `for ... in`
+- `break` / `continue`
+- `&&` / `||` short-circuit lists
+- `case ... in ... ;; esac`
+
+Current `case` support covers the common Bash form with one or more patterns per arm and glob-style matching with `*` and `?`.
 
 ## Direct Execution
 

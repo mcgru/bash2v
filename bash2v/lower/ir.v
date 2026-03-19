@@ -141,6 +141,18 @@ pub:
     body      ProgramIR
 }
 
+pub struct CaseArmIR {
+pub:
+    patterns []WordExpr
+    body     ProgramIR
+}
+
+pub struct CaseIR {
+pub:
+    subject WordExpr
+    arms    []CaseArmIR
+}
+
 pub struct ForInIR {
 pub:
     name  string
@@ -152,7 +164,7 @@ pub struct BreakIR {}
 
 pub struct ContinueIR {}
 
-pub type StmtIR = SetVarIR | ExecIR | PipelineIR | AndOrIR | IfIR | WhileIR | ForInIR | BreakIR | ContinueIR
+pub type StmtIR = SetVarIR | ExecIR | PipelineIR | AndOrIR | IfIR | WhileIR | CaseIR | ForInIR | BreakIR | ContinueIR
 
 pub struct ProgramIR {
 pub:
@@ -332,6 +344,21 @@ pub fn stmt_ir_debug(stmt StmtIR) string {
                 body << stmt_ir_debug(item)
             }
             'while(${cond.join(" ; ")} => ${body.join(" ; ")})'
+        }
+        CaseIR {
+            mut arms := []string{}
+            for arm in stmt.arms {
+                mut patterns := []string{}
+                for pattern in arm.patterns {
+                    patterns << word_expr_debug(pattern)
+                }
+                mut body := []string{}
+                for item in arm.body.stmts {
+                    body << stmt_ir_debug(item)
+                }
+                arms << '${patterns.join(" | ")} => ${body.join(" ; ")}'
+            }
+            'case(${word_expr_debug(stmt.subject)} => ${arms.join(" ; ")})'
         }
         ForInIR {
             mut items := []string{}

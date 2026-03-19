@@ -47,6 +47,75 @@ fn (mut parser Parser) parse_while_stmt() !ast.WhileStmt {
     }
 }
 
+fn (mut parser Parser) parse_case_stmt() !ast.CaseStmt {
+    parser.expect_word('case')!
+    parser.skip_inline_layout()
+    subject := parser.parse_word()!
+    parser.skip_statement_separators()
+    parser.expect_word('in')!
+    mut arms := []ast.CaseArm{}
+    for !parser.done() {
+        parser.skip_statement_separators()
+        if parser.current_word_is('esac') {
+            break
+        }
+        arms << parser.parse_case_arm()!
+    }
+    parser.expect_word('esac')!
+    return ast.CaseStmt{
+        subject: subject
+        arms: arms
+    }
+}
+
+fn (mut parser Parser) parse_case_arm() !ast.CaseArm {
+    parser.skip_statement_separators()
+    if parser.current().kind == .paren_open {
+        parser.advance()
+    }
+    mut patterns := []ast.Word{}
+    for !parser.done() {
+        parser.skip_inline_layout()
+        pattern := parser.parse_word()!
+        if pattern.parts.len == 0 {
+            return error('expected case pattern')
+        }
+        patterns << pattern
+        parser.skip_inline_layout()
+        if parser.current().kind == .pipe {
+            parser.advance()
+            continue
+        }
+        break
+    }
+    parser.expect(.paren_close)!
+    body := parser.parse_case_body()!
+    if parser.current_is_double_semicolon() {
+        parser.advance()
+        parser.advance()
+    }
+    return ast.CaseArm{
+        patterns: patterns
+        body: body
+    }
+}
+
+fn (mut parser Parser) parse_case_body() ![]ast.Stmt {
+    mut stmts := []ast.Stmt{}
+    for !parser.done() {
+        parser.skip_inline_layout()
+        if parser.case_body_boundary_ahead() {
+            break
+        }
+        if parser.current().kind in [.newline, .semicolon] {
+            parser.advance()
+            continue
+        }
+        stmts << parser.parse_and_or()!
+    }
+    return stmts
+}
+
 fn (mut parser Parser) parse_for_in_stmt() !ast.ForInStmt {
     parser.expect_word('for')!
     parser.skip_inline_layout()
@@ -130,4 +199,22 @@ fn (parser Parser) current_is_stop_word(stop_words []string) bool {
         return false
     }
     return tok.text in stop_words
+}
+
+fn (parser Parser) current_is_double_semicolon() bool {
+    return parser.current().kind == .semicolon && parser.peek(1).kind == .semicolon
+}
+
+fn (parser Parser) case_body_boundary_ahead() bool {
+    mut offset := 0
+    for {
+        tok := parser.peek(offset)
+        if tok.kind == .whitespace || tok.kind == .newline {
+            offset++
+            continue
+        }
+        return (tok.kind == .semicolon && parser.peek(offset + 1).kind == .semicolon)
+            || (tok.kind == .word && tok.text == 'esac')
+    }
+    return false
 }
