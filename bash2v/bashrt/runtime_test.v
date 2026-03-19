@@ -306,3 +306,16 @@ fn test_append_scalar_and_indexed_values() {
     assert get_indexed_or_assoc(state, 'ARR1', '3') == 'it5 ooo'
     assert count_items(state, 'ARR1') or { panic(err) } == '4'
 }
+
+fn test_eval_word_with_arithmetic_expansion() {
+    mut state := new_state()
+    set_scalar(mut state, 'x', '5')
+    value := eval_word(mut state, Word{
+        fragments: [
+            WordFragment(ArithmeticFragment{
+                expr: '1 + x * (2 + 3)'
+            }),
+        ]
+    }) or { panic(err) }
+    assert value == '26'
+}

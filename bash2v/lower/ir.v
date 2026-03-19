@@ -70,7 +70,12 @@ pub:
     program ProgramIR
 }
 
-pub type WordFragmentIR = LiteralFragmentIR | DoubleQuotedFragmentIR | ParamFragmentIR | CommandSubstFragmentIR
+pub struct ArithmeticFragmentIR {
+pub:
+    expr string
+}
+
+pub type WordFragmentIR = LiteralFragmentIR | DoubleQuotedFragmentIR | ParamFragmentIR | CommandSubstFragmentIR | ArithmeticFragmentIR
 
 pub struct WordExpr {
 pub:
@@ -145,6 +150,9 @@ pub fn word_fragment_debug(part WordFragmentIR) string {
         }
         CommandSubstFragmentIR {
             'cmd(${part.source})'
+        }
+        ArithmeticFragmentIR {
+            'arith(${part.expr})'
         }
     }
 }

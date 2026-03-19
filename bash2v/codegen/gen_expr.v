@@ -28,6 +28,9 @@ fn gen_word_fragment(part lower.WordFragmentIR) string {
         lower.CommandSubstFragmentIR {
             "bashrt.WordFragment(bashrt.CommandSubstFragment{ source: ${quote_v_string(part.source)}, program: ${gen_eval_program(part.program)} })"
         }
+        lower.ArithmeticFragmentIR {
+            "bashrt.WordFragment(bashrt.ArithmeticFragment{ expr: ${quote_v_string(part.expr)} })"
+        }
     }
 }
 

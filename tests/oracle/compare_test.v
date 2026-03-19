@@ -52,3 +52,16 @@ echo "${VAR1}|${ARR1[0]}|${ARR1[1]}|${ARR1[2]}|${ARR1[3]}|${#ARR1[@]}"'
     assert transpiled_result.status == 0
     assert transpiled_result.stdout == bash_result.stdout
 }
+
+fn test_bash_and_transpiled_match_for_arithmetic_expansion() {
+    source := r'x=5
+y=2
+echo "$((1 + 2 * 3))|$((x + y * 4))|$((-(x - 2)))"'
+
+    bash_result := run_bash_source('arithmetic_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('arithmetic_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}

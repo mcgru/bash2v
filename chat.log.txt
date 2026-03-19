@@ -264,3 +264,34 @@
 [2026-03-19 08:38:24 UTC] DECISION
 - На текущем этапе append полностью поддержан для scalar variables и indexed arrays.
 - Следующий логичный шаг: arithmetic expansion `$((...))`, потому что она часто сочетается и с обычными assignment expressions, и с array indexing.
+
+[2026-03-19 08:49:18 UTC] USER
+- `Делаем следующий шаг`
+
+[2026-03-19 08:49:18 UTC] ASSISTANT SUMMARY
+- Реализована end-to-end поддержка arithmetic expansion `$((...))`.
+- Parser теперь различает `$((...))` и обычный `$(...)`, и сохраняет raw arithmetic expression в `ArithmeticExpansion`.
+- Lowering/codegen/runtime теперь умеют передавать arithmetic fragments как отдельный тип word fragment, без подмены на command substitution.
+- Runtime получил arithmetic evaluator для подмножества Bash arithmetic:
+- целые числа
+- переменные по имени
+- unary `+` / `-`
+- бинарные `+ - * / %`
+- круглые скобки
+- undefined variables в arithmetic context сейчас трактуются как `0`, что согласуется с базовой bash arithmetic model.
+
+[2026-03-19 08:49:18 UTC] STATUS
+- Добавлены и проходят проверки в:
+- `bash2v/parse/parser_test.v`
+- `bash2v/lower/lower_test.v`
+- `bash2v/codegen/codegen_test.v`
+- `bash2v/bashrt/runtime_test.v`
+- `tests/e2e/compile_run_test.v`
+- `tests/oracle/compare_test.v`
+- Arithmetic behavior подтверждён e2e и oracle compare против Bash на сценариях с precedence, variables и unary minus.
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+
+[2026-03-19 08:49:18 UTC] DECISION
+- Следующий логичный шаг: arithmetic assignment/indexing (`i=$((i+1))`, `arr[$((i+1))]=x`) и затем shell condition surface (`test`, `[ ... ]`, `[[ ... ]]`).

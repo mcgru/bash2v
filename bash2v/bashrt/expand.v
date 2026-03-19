@@ -69,7 +69,12 @@ pub:
     program EvalProgram
 }
 
-pub type WordFragment = LiteralFragment | DoubleQuotedFragment | ParamExpansion | CommandSubstFragment
+pub struct ArithmeticFragment {
+pub:
+    expr string
+}
+
+pub type WordFragment = LiteralFragment | DoubleQuotedFragment | ParamExpansion | CommandSubstFragment | ArithmeticFragment
 
 pub struct WordValue {
 pub:
@@ -100,6 +105,9 @@ fn eval_fragment(mut state State, fragment WordFragment) !string {
         }
         CommandSubstFragment {
             eval_command_subst(mut state, fragment)!
+        }
+        ArithmeticFragment {
+            eval_arithmetic(mut state, fragment.expr)!
         }
     }
 }

@@ -50,7 +50,9 @@ fn lower_word_part(part ast.WordPart) !WordFragmentIR {
             })
         }
         ast.ArithmeticExpansion {
-            return error('arithmetic expansion lowering is not implemented yet')
+            WordFragmentIR(ArithmeticFragmentIR{
+                expr: part.expr
+            })
         }
     }
 }

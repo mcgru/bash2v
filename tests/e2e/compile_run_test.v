@@ -74,6 +74,14 @@ echo "${VAR1}|${ARR1[0]}|${ARR1[1]}|${ARR1[2]}|${ARR1[3]}|${#ARR1[@]}"')
     assert result.output == 'qweqweasdasd|item1|item2|it4|it5 ooo|4\n'
 }
 
+fn test_generated_v_can_run_arithmetic_expansion() {
+    result := transpile_and_run('generated_arithmetic.v', r'x=5
+y=2
+echo "$((1 + 2 * 3))|$((x + y * 4))|$((-(x - 2)))"')
+    assert result.exit_code == 0
+    assert result.output == '7|13|-3\n'
+}
+
 fn transpile_and_run(filename string, source string) os.Result {
     tmp_dir := os.join_path('/home/margo/dev/bash2v', 'tests', 'e2e', 'tmp')
     os.mkdir_all(tmp_dir) or { panic(err) }

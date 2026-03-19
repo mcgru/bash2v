@@ -56,3 +56,11 @@ fn test_generate_append_assignments() {
     assert generated.contains("bashrt.append_scalar(mut st, 'VAR1'")
     assert generated.contains("bashrt.append_indexed_values(mut st, 'ARR1'")
 }
+
+fn test_generate_arithmetic_expansion() {
+    mut parser := parse.new_parser(lex.tokenize(r'echo "$((1 + x * 3))"'))
+    program := parser.parse_program() or { panic(err) }
+    lowered := lower.lower_program(program) or { panic(err) }
+    generated := generate(lowered)
+    assert generated.contains('bashrt.ArithmeticFragment{ expr:')
+}

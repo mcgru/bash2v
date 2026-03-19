@@ -70,6 +70,13 @@ fn test_lower_append_assignments() {
     assert program_ir_debug(program_ir) == 'set(VAR1+=lit(asdasd); kind=scalar) ; set(ARR1+=(lit(item1) dq(lit(it5) + lit( ) + lit(ooo))); kind=indexed) ; set(ARR2=(); kind=indexed)'
 }
 
+fn test_lower_arithmetic_expansion() {
+    mut parser := parse.new_parser(lex.tokenize(r'echo "$((1 + x * 3))"'))
+    program := parser.parse_program() or { panic(err) }
+    program_ir := lower_program(program) or { panic(err) }
+    assert program_ir_debug(program_ir) == 'exec(argv=[lit(echo), dq(arith(1 + x * 3))])'
+}
+
 fn test_lower_default_value_expansion() {
     mut parser := parse.new_parser(lex.tokenize(r'echo "${name:=fallback}" "${name:-other}"'))
     program := parser.parse_program() or { panic(err) }

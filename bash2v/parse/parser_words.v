@@ -45,7 +45,11 @@ pub fn (mut parser Parser) parse_word_part() !ast.WordPart {
             ast.WordPart(parser.parse_param_expansion()!)
         }
         .dollar_paren_open {
-            ast.WordPart(parser.parse_command_substitution()!)
+            if parser.peek(1).kind == .paren_open {
+                ast.WordPart(parser.parse_arithmetic_expansion()!)
+            } else {
+                ast.WordPart(parser.parse_command_substitution()!)
+            }
         }
         else {
             parser.advance()
@@ -93,7 +97,11 @@ fn (mut parser Parser) parse_double_quoted_inner_part() !ast.WordPart {
             ast.WordPart(parser.parse_param_expansion()!)
         }
         .dollar_paren_open {
-            ast.WordPart(parser.parse_command_substitution()!)
+            if parser.peek(1).kind == .paren_open {
+                ast.WordPart(parser.parse_arithmetic_expansion()!)
+            } else {
+                ast.WordPart(parser.parse_command_substitution()!)
+            }
         }
         else {
             return support.new_error('unexpected token in double-quoted string: ${tok.kind}', tok.span)

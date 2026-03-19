@@ -66,6 +66,12 @@ fn test_parse_nested_command_substitution_keeps_source() {
     assert ast.word_debug(word) == 'cmd(printf "%s" "$(echo hi)")'
 }
 
+fn test_parse_arithmetic_expansion_keeps_expression() {
+    mut parser := new_parser(lex.tokenize(r'$((1 + x * (2 + 3)))'))
+    word := parser.parse_word() or { panic(err) }
+    assert ast.word_debug(word) == 'arith(1 + x * (2 + 3))'
+}
+
 fn test_parse_program_simple_command() {
     mut parser := new_parser(lex.tokenize('echo hello'))
     program := parser.parse_program() or { panic(err) }

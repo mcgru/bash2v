@@ -73,6 +73,41 @@ pub fn (mut parser Parser) parse_command_substitution() !ast.CommandSubstitution
     return support.new_error('unterminated command substitution', open.span)
 }
 
+pub fn (mut parser Parser) parse_arithmetic_expansion() !ast.ArithmeticExpansion {
+    open := parser.expect(.dollar_paren_open)!
+    parser.expect(.paren_open)!
+    mut depth := 1
+    mut raw := []string{}
+    for !parser.done() {
+        tok := parser.advance()
+        match tok.kind {
+            .paren_open {
+                depth++
+                raw << tok.text
+            }
+            .paren_close {
+                if depth == 1 {
+                    parser.expect(.paren_close) or {
+                        return support.new_error('unterminated arithmetic expansion', open.span)
+                    }
+                    return ast.ArithmeticExpansion{
+                        expr: raw.join('')
+                    }
+                }
+                depth--
+                raw << tok.text
+            }
+            .eof {
+                return support.new_error('unterminated arithmetic expansion', open.span)
+            }
+            else {
+                raw << tok.text
+            }
+        }
+    }
+    return support.new_error('unterminated arithmetic expansion', open.span)
+}
+
 fn parse_param_body(raw string) !ast.ParamExpansion {
     mut body := raw
     mut length := false
