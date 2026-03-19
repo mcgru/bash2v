@@ -456,3 +456,33 @@
 
 [2026-03-19 09:36:58 UTC] DECISION
 - Следующий логичный шаг: plain `$VAR` expansion, потому что сейчас control-flow уже достаточно широкий, а отсутствие `$VAR` остаётся заметным ergonomic gap в обычном bash-коде.
+
+[2026-03-19 09:51:45 UTC] USER
+- `продолжаем шаг: plain $VAR expansion`
+
+[2026-03-19 09:51:45 UTC] ASSISTANT SUMMARY
+- Реализована plain `$VAR` expansion для простого Bash-style variable access без `${...}`.
+- Parser теперь обрабатывает токен `.dollar` как parameter expansion, если следом идёт валидное имя переменной; иначе `$` остаётся literal-fragment.
+- Поддержка добавлена как в обычных words, так и внутри double-quoted strings.
+- Обновлены сценарии control-flow, чтобы использовать более естественную форму:
+- `while [ "$i" -lt 3 ]; do ...`
+- `for item in ...; do echo "$item"; done`
+- Добавлены:
+- lexer test на split `'$' + word`
+- parser test для bare `$name` и quoted `"$value"`
+- e2e и oracle compare для plain `$VAR`
+- Во время прогона всплыл один дефект только в parser test: ожидание было ошибочно сформировано как будто `parse_word()` должен был проглотить несколько shell words через пробел; тест исправлен в соответствии с реальной границей `parse_word()`.
+
+[2026-03-19 09:51:45 UTC] STATUS
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+- Дополнительно отдельно были подтверждены:
+- `v test /home/margo/dev/bash2v/bash2v/lex`
+- `v test /home/margo/dev/bash2v/bash2v/parse`
+- `v test /home/margo/dev/bash2v/tests/e2e/compile_run_test.v`
+- `v test /home/margo/dev/bash2v/tests/oracle/compare_test.v`
+
+[2026-03-19 09:51:45 UTC] DECISION
+- Текущая реализация покрывает plain `$VAR` для обычных валидных имён переменных и quoted usage, что закрывает основной ergonomic gap для уже реализованных `if`/`while`/`for`.
+- Следующий логичный шаг: `break` / `continue` / `elif`, либо functions, в зависимости от того, какой кусок shell surface area сейчас важнее.

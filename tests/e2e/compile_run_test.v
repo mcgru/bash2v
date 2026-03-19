@@ -133,10 +133,18 @@ done')
 
 fn test_generated_v_can_run_for_in_statement() {
     result := transpile_and_run('generated_for_in.v', r'for item in one "two words" three; do
-echo "${item}"
+echo "$item"
 done')
     assert result.exit_code == 0
     assert result.output == 'one\ntwo words\nthree\n'
+}
+
+fn test_generated_v_can_run_plain_dollar_expansion() {
+    result := transpile_and_run('generated_plain_dollar.v', r'name=world
+value=42
+echo $name "$value"')
+    assert result.exit_code == 0
+    assert result.output == 'world 42\n'
 }
 
 fn transpile_and_run(filename string, source string) os.Result {

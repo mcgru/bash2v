@@ -51,6 +51,9 @@ pub fn (mut parser Parser) parse_word_part() !ast.WordPart {
                 ast.WordPart(parser.parse_command_substitution()!)
             }
         }
+        .dollar {
+            parser.parse_plain_dollar_part()
+        }
         else {
             parser.advance()
             if tok.kind in [.paren_open, .paren_close, .brace_open, .brace_close, .bracket_open, .bracket_close, .pipe, .pipe_pipe, .amp, .amp_amp, .semicolon, .equals, .dollar] {
@@ -103,8 +106,25 @@ fn (mut parser Parser) parse_double_quoted_inner_part() !ast.WordPart {
                 ast.WordPart(parser.parse_command_substitution()!)
             }
         }
+        .dollar {
+            parser.parse_plain_dollar_part()
+        }
         else {
             return support.new_error('unexpected token in double-quoted string: ${tok.kind}', tok.span)
         }
     }
+}
+
+fn (mut parser Parser) parse_plain_dollar_part() !ast.WordPart {
+    parser.expect(.dollar)!
+    next := parser.current()
+    if next.kind == .word && is_valid_name(next.text) {
+        parser.advance()
+        return ast.WordPart(ast.ParamExpansion{
+            name: next.text
+        })
+    }
+    return ast.WordPart(ast.LiteralPart{
+        text: '$'
+    })
 }

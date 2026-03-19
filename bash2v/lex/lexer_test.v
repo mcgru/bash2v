@@ -19,3 +19,10 @@ fn test_single_quotes_are_scanned_as_one_token() {
     assert tokens[2].kind == .single_quoted
     assert tokens[2].text == 'a b c'
 }
+
+fn test_plain_dollar_variable_is_split_into_dollar_and_word() {
+    tokens := tokenize(r'echo $name "$value"')
+    assert tokens[2].kind == .dollar
+    assert tokens[3].kind == .word
+    assert tokens[3].text == 'name'
+}

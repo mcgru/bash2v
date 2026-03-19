@@ -20,6 +20,16 @@ fn test_parse_word_with_single_and_double_quotes() {
     assert ast.word_debug(word) == 'dq(lit(hello) + lit( ) + param(name; op=noop))'
 }
 
+fn test_parse_word_with_plain_dollar_expansion() {
+    mut parser1 := new_parser(lex.tokenize(r'$name'))
+    word1 := parser1.parse_word() or { panic(err) }
+    assert ast.word_debug(word1) == 'param(name; op=noop)'
+
+    mut parser2 := new_parser(lex.tokenize(r'"$value"'))
+    word2 := parser2.parse_word() or { panic(err) }
+    assert ast.word_debug(word2) == 'dq(param(value; op=noop))'
+}
+
 fn test_parse_param_expansion_replace_all() {
     mut parser := new_parser(lex.tokenize(r'${value//a/b}'))
     word := parser.parse_word() or { panic(err) }
@@ -178,13 +188,13 @@ fn test_parse_if_statement_with_else() {
 }
 
 fn test_parse_while_statement() {
-    mut parser := new_parser(lex.tokenize(r'while [ "${i}" -lt 3 ]; do i=$((i + 1)); echo "${i}"; done'))
+    mut parser := new_parser(lex.tokenize(r'while [ "$i" -lt 3 ]; do i=$((i + 1)); echo "$i"; done'))
     program := parser.parse_program() or { panic(err) }
     assert ast.program_debug(program) == 'while(cmd(words=[lit([), dq(param(i; op=noop)), lit(-lt), lit(3), lit(])]) => assign(i=arith(i + 1)) ; cmd(words=[lit(echo), dq(param(i; op=noop))]))'
 }
 
 fn test_parse_for_in_statement() {
-    mut parser := new_parser(lex.tokenize(r'for item in one "two words" three; do echo "${item}"; done'))
+    mut parser := new_parser(lex.tokenize(r'for item in one "two words" three; do echo "$item"; done'))
     program := parser.parse_program() or { panic(err) }
     assert ast.program_debug(program) == 'for(item in lit(one) dq(lit(two) + lit( ) + lit(words)) lit(three) => cmd(words=[lit(echo), dq(param(item; op=noop))]))'
 }

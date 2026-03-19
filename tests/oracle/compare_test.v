@@ -144,11 +144,24 @@ done'
 
 fn test_bash_and_transpiled_match_for_for_in_statement() {
     source := r'for item in one "two words" three; do
-echo "${item}"
+echo "$item"
 done'
 
     bash_result := run_bash_source('for_in_case', source) or { panic(err) }
     transpiled_result := run_transpiled_source('for_in_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}
+
+fn test_bash_and_transpiled_match_for_plain_dollar_expansion() {
+    source := r'name=world
+value=42
+echo $name "$value"'
+
+    bash_result := run_bash_source('plain_dollar_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('plain_dollar_case', source) or { panic(err) }
 
     assert bash_result.status == 0
     assert transpiled_result.status == 0
