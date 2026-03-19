@@ -42,3 +42,10 @@ pub struct Subshell {
 pub:
     body []Stmt
 }
+
+pub struct IfStmt {
+pub:
+    condition []Stmt
+    then_body []Stmt
+    else_body []Stmt
+}

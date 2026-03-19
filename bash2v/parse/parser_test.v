@@ -170,3 +170,9 @@ fn test_parse_assignment_with_arithmetic_index() {
         assert false
     }
 }
+
+fn test_parse_if_statement_with_else() {
+    mut parser := new_parser(lex.tokenize('if test 5 -gt 3; then echo yes; else echo no; fi'))
+    program := parser.parse_program() or { panic(err) }
+    assert ast.program_debug(program) == 'if(cmd(words=[lit(test), lit(5), lit(-gt), lit(3)]) => cmd(words=[lit(echo), lit(yes)])) else (cmd(words=[lit(echo), lit(no)]))'
+}

@@ -12,7 +12,7 @@ pub fn generate(program lower.ProgramIR) string {
     out.writeln('fn main() {')
     out.writeln('\tmut st := bashrt.new_state()')
     for stmt in program.stmts {
-        out.writeln('\t${gen_stmt(stmt)}')
+        out.writeln(indent_block(gen_stmt(stmt), '\t'))
     }
     out.writeln('}')
     return out.str()

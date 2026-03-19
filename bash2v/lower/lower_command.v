@@ -27,6 +27,9 @@ pub fn lower_stmt(stmt ast.Stmt) ![]StmtIR {
         ast.Subshell {
             return error('subshell lowering is not implemented yet')
         }
+        ast.IfStmt {
+            return [StmtIR(lower_if_stmt(stmt)!)]
+        }
     }
 }
 
@@ -60,10 +63,31 @@ fn lower_pipeline(pipeline ast.Pipeline) !PipelineIR {
             ast.Pipeline, ast.List, ast.Subshell {
                 return error('nested pipeline/list/subshell lowering is not implemented for pipeline steps')
             }
+            ast.IfStmt {
+                return error('if statements are not valid pipeline steps')
+            }
         }
     }
     return PipelineIR{
         steps: steps
+    }
+}
+
+fn lower_if_stmt(stmt ast.IfStmt) !IfIR {
+    return IfIR{
+        condition: lower_stmt_block(stmt.condition)!
+        then_body: lower_stmt_block(stmt.then_body)!
+        else_body: lower_stmt_block(stmt.else_body)!
+    }
+}
+
+fn lower_stmt_block(stmts []ast.Stmt) !ProgramIR {
+    mut out := []StmtIR{}
+    for stmt in stmts {
+        out << lower_stmt(stmt)!
+    }
+    return ProgramIR{
+        stmts: out
     }
 }
 

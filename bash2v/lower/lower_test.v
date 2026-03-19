@@ -86,6 +86,13 @@ echo "${arr[$((i + 1))]}"'))
     assert program_ir_debug(program_ir) == 'set(i=lit(1); kind=scalar) ; set(arr[arith(i + 1)]=arith(i + 4); kind=indexed) ; exec(argv=[lit(echo), dq(param(arr; index=arith(i + 1); op=noop))])'
 }
 
+fn test_lower_if_statement() {
+    mut parser := parse.new_parser(lex.tokenize('if test 5 -gt 3; then echo yes; else echo no; fi'))
+    program := parser.parse_program() or { panic(err) }
+    program_ir := lower_program(program) or { panic(err) }
+    assert program_ir_debug(program_ir) == 'if(exec(argv=[lit(test), lit(5), lit(-gt), lit(3)]) => exec(argv=[lit(echo), lit(yes)])) else (exec(argv=[lit(echo), lit(no)]))'
+}
+
 fn test_lower_default_value_expansion() {
     mut parser := parse.new_parser(lex.tokenize(r'echo "${name:=fallback}" "${name:-other}"'))
     program := parser.parse_program() or { panic(err) }

@@ -141,6 +141,18 @@ pub fn run_pipeline_words(mut state State, commands [][]string) ! {
     emit_result(result)
 }
 
+pub fn eval_program_status(mut state State, program EvalProgram) !int {
+    result := eval_program_capture(mut state, program)!
+    if result.stdout != '' {
+        print(result.stdout)
+    }
+    if result.stderr != '' {
+        eprint(result.stderr)
+    }
+    state.last_status = result.status
+    return result.status
+}
+
 fn eval_program_capture(mut state State, program EvalProgram) !ExecResult {
     mut stdout := []string{}
     mut stderr := []string{}

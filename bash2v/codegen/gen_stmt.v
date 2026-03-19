@@ -7,6 +7,7 @@ pub fn gen_stmt(stmt lower.StmtIR) string {
         lower.SetVarIR { gen_set(stmt) }
         lower.ExecIR { gen_exec(stmt) }
         lower.PipelineIR { gen_pipeline(stmt) }
+        lower.IfIR { gen_if(stmt) }
     }
 }
 
@@ -94,4 +95,28 @@ fn gen_pipeline(stmt lower.PipelineIR) string {
         steps << '[${argv.join(", ")}]'
     }
     return 'bashrt.run_pipeline_words(mut st, [${steps.join(", ")}])!'
+}
+
+fn gen_if(stmt lower.IfIR) string {
+    mut lines := []string{}
+    lines << 'if bashrt.eval_program_status(mut st, ${gen_eval_program(stmt.condition)})! == 0 {'
+    for item in stmt.then_body.stmts {
+        lines << indent_block(gen_stmt(item), '\t')
+    }
+    if stmt.else_body.stmts.len > 0 {
+        lines << '} else {'
+        for item in stmt.else_body.stmts {
+            lines << indent_block(gen_stmt(item), '\t')
+        }
+    }
+    lines << '}'
+    return lines.join('\n')
+}
+
+fn indent_block(input string, prefix string) string {
+    mut lines := []string{}
+    for line in input.split('\n') {
+        lines << prefix + line
+    }
+    return lines.join('\n')
 }

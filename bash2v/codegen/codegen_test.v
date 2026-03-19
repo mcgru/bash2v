@@ -64,3 +64,12 @@ fn test_generate_arithmetic_expansion() {
     generated := generate(lowered)
     assert generated.contains('bashrt.ArithmeticFragment{ expr:')
 }
+
+fn test_generate_if_statement() {
+    mut parser := parse.new_parser(lex.tokenize('if test 5 -gt 3; then echo yes; else echo no; fi'))
+    program := parser.parse_program() or { panic(err) }
+    lowered := lower.lower_program(program) or { panic(err) }
+    generated := generate(lowered)
+    assert generated.contains('if bashrt.eval_program_status(mut st, bashrt.EvalProgram')
+    assert generated.contains("bashrt.run_exec(mut st, [bashrt.eval_word(mut st, bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'echo' })] })!, bashrt.eval_word(mut st, bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'yes' })] })!])!")
+}

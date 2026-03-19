@@ -360,3 +360,31 @@
 
 [2026-03-19 09:16:06 UTC] DECISION
 - Следующий логичный шаг: control flow (`if`, `while`, `for`) поверх уже работающих conditions, assignments, arithmetic и command execution.
+
+[2026-03-19 09:23:57 UTC] USER
+- `делаем!`
+
+[2026-03-19 09:23:57 UTC] ASSISTANT SUMMARY
+- Реализован `if ... then ... [else ...] fi` как новый control-flow statement.
+- Для этого расширены:
+- AST (`IfStmt`)
+- parser block parsing с stop-words `then`, `else`, `fi`
+- lowering IR (`IfIR`)
+- codegen для V `if { ... } else { ... }`
+- runtime helper `eval_program_status(...)`, который исполняет condition program, печатает его stdout/stderr и возвращает exit status без принудительного `exit(...)`
+- `if` теперь может опираться на уже реализованные builtins `test`, `[ ... ]`, `[[ ... ]]`, а также на assignments, arithmetic expansion и обычные commands.
+
+[2026-03-19 09:23:57 UTC] STATUS
+- Добавлены и проходят проверки в:
+- `bash2v/parse/parser_test.v`
+- `bash2v/lower/lower_test.v`
+- `bash2v/codegen/codegen_test.v`
+- `tests/e2e/compile_run_test.v`
+- `tests/oracle/compare_test.v`
+- `if` подтвержден e2e и oracle compare против Bash на сценарии с `test` и `[[ -z ... ]]`, плюс `then/else` branching.
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+
+[2026-03-19 09:23:57 UTC] DECISION
+- Следующий логичный шаг: `while ...; do ...; done`, потому что он почти напрямую использует уже введённую модель condition program + body program.

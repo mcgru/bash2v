@@ -104,7 +104,14 @@ pub:
     steps []ExecIR
 }
 
-pub type StmtIR = SetVarIR | ExecIR | PipelineIR
+pub struct IfIR {
+pub:
+    condition ProgramIR
+    then_body ProgramIR
+    else_body ProgramIR
+}
+
+pub type StmtIR = SetVarIR | ExecIR | PipelineIR | IfIR
 
 pub struct ProgramIR {
 pub:
@@ -234,6 +241,25 @@ pub fn stmt_ir_debug(stmt StmtIR) string {
                 steps << stmt_ir_debug(StmtIR(item))
             }
             'pipeline(${steps.join(" | ")})'
+        }
+        IfIR {
+            mut cond := []string{}
+            for item in stmt.condition.stmts {
+                cond << stmt_ir_debug(item)
+            }
+            mut then_body := []string{}
+            for item in stmt.then_body.stmts {
+                then_body << stmt_ir_debug(item)
+            }
+            mut out := 'if(${cond.join(" ; ")} => ${then_body.join(" ; ")})'
+            if stmt.else_body.stmts.len > 0 {
+                mut else_body := []string{}
+                for item in stmt.else_body.stmts {
+                    else_body << stmt_ir_debug(item)
+                }
+                out += ' else (${else_body.join(" ; ")})'
+            }
+            out
         }
     }
 }

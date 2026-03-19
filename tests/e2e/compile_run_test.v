@@ -106,6 +106,21 @@ fn test_generated_v_false_condition_exits_nonzero() {
     assert result.exit_code != 0
 }
 
+fn test_generated_v_can_run_if_statement() {
+    result := transpile_and_run('generated_if.v', r'if test 5 -gt 3; then
+echo yes
+else
+echo no
+fi
+if [[ -z bar ]]; then
+echo no
+else
+echo ok
+fi')
+    assert result.exit_code == 0
+    assert result.output == 'yes\nok\n'
+}
+
 fn transpile_and_run(filename string, source string) os.Result {
     tmp_dir := os.join_path('/home/margo/dev/bash2v', 'tests', 'e2e', 'tmp')
     os.mkdir_all(tmp_dir) or { panic(err) }

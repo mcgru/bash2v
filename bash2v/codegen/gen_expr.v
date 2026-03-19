@@ -102,6 +102,9 @@ fn gen_eval_stmt(stmt lower.StmtIR) string {
         lower.PipelineIR {
             'bashrt.EvalStmt(${gen_eval_pipeline(stmt)})'
         }
+        lower.IfIR {
+            panic('if statements are not supported inside EvalProgram')
+        }
     }
 }
 

@@ -45,6 +45,25 @@ pub fn stmt_debug(stmt Stmt) string {
             }
             'subshell(${items.join(" ; ")})'
         }
+        IfStmt {
+            mut cond := []string{}
+            for item in stmt.condition {
+                cond << stmt_debug(item)
+            }
+            mut then_body := []string{}
+            for item in stmt.then_body {
+                then_body << stmt_debug(item)
+            }
+            mut out := 'if(${cond.join(" ; ")} => ${then_body.join(" ; ")})'
+            if stmt.else_body.len > 0 {
+                mut else_body := []string{}
+                for item in stmt.else_body {
+                    else_body << stmt_debug(item)
+                }
+                out += ' else (${else_body.join(" ; ")})'
+            }
+            out
+        }
     }
 }
 

@@ -106,3 +106,23 @@ fn test_bash_and_transpiled_match_for_false_condition() {
     assert bash_result.stdout == ''
     assert transpiled_result.stdout == ''
 }
+
+fn test_bash_and_transpiled_match_for_if_statement() {
+    source := r'if test 5 -gt 3; then
+echo yes
+else
+echo no
+fi
+if [[ -z bar ]]; then
+echo no
+else
+echo ok
+fi'
+
+    bash_result := run_bash_source('if_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('if_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}
