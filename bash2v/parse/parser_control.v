@@ -4,15 +4,30 @@ import bash2v.ast
 
 fn (mut parser Parser) parse_if_stmt() !ast.IfStmt {
     parser.expect_word('if')!
+    return parser.parse_if_tail()!
+}
+
+fn (mut parser Parser) parse_elif_stmt() !ast.IfStmt {
+    parser.expect_word('elif')!
+    return parser.parse_if_tail()!
+}
+
+fn (mut parser Parser) parse_if_tail() !ast.IfStmt {
     condition := parser.parse_stmt_sequence_until(['then'])!
     parser.expect_word('then')!
-    then_body := parser.parse_stmt_sequence_until(['else', 'fi'])!
+    then_body := parser.parse_stmt_sequence_until(['else', 'elif', 'fi'])!
     mut else_body := []ast.Stmt{}
+    mut nested_elif := false
     if parser.current_word_is('else') {
         parser.expect_word('else')!
         else_body = parser.parse_stmt_sequence_until(['fi'])!
+    } else if parser.current_word_is('elif') {
+        nested_elif = true
+        else_body = [ast.Stmt(parser.parse_elif_stmt()!)]
     }
-    parser.expect_word('fi')!
+    if !nested_elif {
+        parser.expect_word('fi')!
+    }
     return ast.IfStmt{
         condition: condition
         then_body: then_body
@@ -71,6 +86,16 @@ fn (mut parser Parser) parse_for_in_stmt() !ast.ForInStmt {
         items: items
         body: body
     }
+}
+
+fn (mut parser Parser) parse_break_stmt() !ast.BreakStmt {
+    parser.expect_word('break')!
+    return ast.BreakStmt{}
+}
+
+fn (mut parser Parser) parse_continue_stmt() !ast.ContinueStmt {
+    parser.expect_word('continue')!
+    return ast.ContinueStmt{}
 }
 
 fn (mut parser Parser) parse_stmt_sequence_until(stop_words []string) ![]ast.Stmt {

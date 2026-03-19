@@ -111,6 +111,12 @@ fn gen_eval_stmt(stmt lower.StmtIR) string {
         lower.ForInIR {
             panic('for statements are not supported inside EvalProgram')
         }
+        lower.BreakIR {
+            panic('break statements are not supported inside EvalProgram')
+        }
+        lower.ContinueIR {
+            panic('continue statements are not supported inside EvalProgram')
+        }
     }
 }
 

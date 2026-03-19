@@ -121,14 +121,43 @@ fi')
     assert result.output == 'yes\nok\n'
 }
 
+fn test_generated_v_can_run_if_statement_with_elif() {
+    result := transpile_and_run('generated_if_elif.v', r'x=2
+if [ "$x" -eq 1 ]; then
+echo one
+elif [ "$x" -eq 2 ]; then
+echo two
+else
+echo other
+fi')
+    assert result.exit_code == 0
+    assert result.output == 'two\n'
+}
+
 fn test_generated_v_can_run_while_statement() {
     result := transpile_and_run('generated_while.v', r'i=0
-while [ "${i}" -lt 3 ]; do
+while [ "$i" -lt 3 ]; do
 i=$((i + 1))
-echo "${i}"
+echo "$i"
 done')
     assert result.exit_code == 0
     assert result.output == '1\n2\n3\n'
+}
+
+fn test_generated_v_can_run_break_and_continue() {
+    result := transpile_and_run('generated_break_continue.v', r'i=0
+while true; do
+i=$((i + 1))
+if [ "$i" -eq 2 ]; then
+continue
+fi
+echo "$i"
+if [ "$i" -eq 3 ]; then
+break
+fi
+done')
+    assert result.exit_code == 0
+    assert result.output == '1\n3\n'
 }
 
 fn test_generated_v_can_run_for_in_statement() {

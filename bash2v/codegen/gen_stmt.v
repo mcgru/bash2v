@@ -10,6 +10,8 @@ pub fn gen_stmt(stmt lower.StmtIR) string {
         lower.IfIR { gen_if(stmt) }
         lower.WhileIR { gen_while(stmt) }
         lower.ForInIR { gen_for_in(stmt) }
+        lower.BreakIR { 'break' }
+        lower.ContinueIR { 'continue' }
     }
 }
 

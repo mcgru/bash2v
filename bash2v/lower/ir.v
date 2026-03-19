@@ -124,7 +124,11 @@ pub:
     body  ProgramIR
 }
 
-pub type StmtIR = SetVarIR | ExecIR | PipelineIR | IfIR | WhileIR | ForInIR
+pub struct BreakIR {}
+
+pub struct ContinueIR {}
+
+pub type StmtIR = SetVarIR | ExecIR | PipelineIR | IfIR | WhileIR | ForInIR | BreakIR | ContinueIR
 
 pub struct ProgramIR {
 pub:
@@ -295,6 +299,12 @@ pub fn stmt_ir_debug(stmt StmtIR) string {
                 body << stmt_ir_debug(item)
             }
             'for(${stmt.name} in ${items.join(" ")} => ${body.join(" ; ")})'
+        }
+        BreakIR {
+            'break'
+        }
+        ContinueIR {
+            'continue'
         }
     }
 }

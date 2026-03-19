@@ -127,15 +127,54 @@ fi'
     assert transpiled_result.stdout == bash_result.stdout
 }
 
+fn test_bash_and_transpiled_match_for_if_statement_with_elif() {
+    source := r'x=2
+if [ "$x" -eq 1 ]; then
+echo one
+elif [ "$x" -eq 2 ]; then
+echo two
+else
+echo other
+fi'
+
+    bash_result := run_bash_source('if_elif_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('if_elif_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}
+
 fn test_bash_and_transpiled_match_for_while_statement() {
     source := r'i=0
-while [ "${i}" -lt 3 ]; do
+while [ "$i" -lt 3 ]; do
 i=$((i + 1))
-echo "${i}"
+echo "$i"
 done'
 
     bash_result := run_bash_source('while_case', source) or { panic(err) }
     transpiled_result := run_transpiled_source('while_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}
+
+fn test_bash_and_transpiled_match_for_break_and_continue() {
+    source := r'i=0
+while true; do
+i=$((i + 1))
+if [ "$i" -eq 2 ]; then
+continue
+fi
+echo "$i"
+if [ "$i" -eq 3 ]; then
+break
+fi
+done'
+
+    bash_result := run_bash_source('break_continue_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('break_continue_case', source) or { panic(err) }
 
     assert bash_result.status == 0
     assert transpiled_result.status == 0

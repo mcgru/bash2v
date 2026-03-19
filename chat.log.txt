@@ -486,3 +486,34 @@
 [2026-03-19 09:51:45 UTC] DECISION
 - Текущая реализация покрывает plain `$VAR` для обычных валидных имён переменных и quoted usage, что закрывает основной ergonomic gap для уже реализованных `if`/`while`/`for`.
 - Следующий логичный шаг: `break` / `continue` / `elif`, либо functions, в зависимости от того, какой кусок shell surface area сейчас важнее.
+
+[2026-03-19 09:59:21 UTC] USER
+- `делаем`
+
+[2026-03-19 09:59:21 UTC] ASSISTANT SUMMARY
+- Реализованы `break`, `continue` и `elif`.
+- Для `elif` parser расширен без нового runtime layer:
+- `elif` представляется как вложенный `IfStmt` внутри `else_body`, что затем естественно проходит через lowering и codegen.
+- Для `break` и `continue` добавлены отдельные statement-типы в AST и IR:
+- `BreakStmt` / `ContinueStmt`
+- `BreakIR` / `ContinueIR`
+- Codegen теперь генерирует прямые V-keywords `break` и `continue` внутри loop bodies.
+- Обновлены parser/lower/codegen debug paths и exhaustiveness в `gen_eval_stmt(...)`.
+- Добавлены e2e и oracle сценарии:
+- `if ... elif ... else ... fi`
+- `while true; do ... continue ... break ... done`
+
+[2026-03-19 09:59:21 UTC] STATUS
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+- Отдельно подтверждены:
+- `v test /home/margo/dev/bash2v/bash2v/parse`
+- `v test /home/margo/dev/bash2v/bash2v/lower`
+- `v test /home/margo/dev/bash2v/bash2v/codegen`
+- `v test /home/margo/dev/bash2v/tests/e2e/compile_run_test.v`
+- `v test /home/margo/dev/bash2v/tests/oracle/compare_test.v`
+
+[2026-03-19 09:59:21 UTC] DECISION
+- На текущем этапе покрыты самые полезные control-flow gaps поверх уже существующих `if`/`while`/`for`.
+- Следующий логичный шаг: shell functions, либо `case`, либо `&&` / `||` short-circuit lists. Из этих вариантов наиболее продуктивным следующим выглядит `&&` / `||`, потому что оно часто встречается и не требует ещё одного крупного runtime model.

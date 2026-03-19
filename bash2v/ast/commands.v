@@ -62,3 +62,7 @@ pub:
     items []Word
     body  []Stmt
 }
+
+pub struct BreakStmt {}
+
+pub struct ContinueStmt {}

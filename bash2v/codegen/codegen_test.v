@@ -74,6 +74,15 @@ fn test_generate_if_statement() {
     assert generated.contains("bashrt.run_exec(mut st, [bashrt.eval_word(mut st, bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'echo' })] })!, bashrt.eval_word(mut st, bashrt.Word{ fragments: [bashrt.WordFragment(bashrt.LiteralFragment{ text: 'yes' })] })!])!")
 }
 
+fn test_generate_if_statement_with_elif() {
+    mut parser := parse.new_parser(lex.tokenize('if test 1 -eq 2; then echo no; elif test 2 -eq 2; then echo yes; else echo other; fi'))
+    program := parser.parse_program() or { panic(err) }
+    lowered := lower.lower_program(program) or { panic(err) }
+    generated := generate(lowered)
+    assert generated.contains('} else {')
+    assert generated.contains("bashrt.LiteralFragment{ text: 'other' }")
+}
+
 fn test_generate_while_statement() {
     mut parser := parse.new_parser(lex.tokenize(r'while [ "$i" -lt 3 ]; do i=$((i + 1)); echo "$i"; done'))
     program := parser.parse_program() or { panic(err) }
@@ -91,4 +100,13 @@ fn test_generate_for_in_statement() {
     generated := generate(lowered)
     assert generated.contains('for bash2v_item_item in [')
     assert generated.contains("bashrt.set_scalar(mut st, 'item', bash2v_item_item)")
+}
+
+fn test_generate_break_and_continue_statements() {
+    mut parser := parse.new_parser(lex.tokenize('while true; do continue; break; done'))
+    program := parser.parse_program() or { panic(err) }
+    lowered := lower.lower_program(program) or { panic(err) }
+    generated := generate(lowered)
+    assert generated.contains('\tcontinue')
+    assert generated.contains('\tbreak')
 }

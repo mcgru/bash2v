@@ -36,6 +36,12 @@ pub fn lower_stmt(stmt ast.Stmt) ![]StmtIR {
         ast.ForInStmt {
             return [StmtIR(lower_for_in_stmt(stmt)!)]
         }
+        ast.BreakStmt {
+            return [StmtIR(BreakIR{})]
+        }
+        ast.ContinueStmt {
+            return [StmtIR(ContinueIR{})]
+        }
     }
 }
 
@@ -77,6 +83,12 @@ fn lower_pipeline(pipeline ast.Pipeline) !PipelineIR {
             }
             ast.ForInStmt {
                 return error('for statements are not valid pipeline steps')
+            }
+            ast.BreakStmt {
+                return error('break statements are not valid pipeline steps')
+            }
+            ast.ContinueStmt {
+                return error('continue statements are not valid pipeline steps')
             }
         }
     }

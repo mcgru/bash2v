@@ -187,6 +187,12 @@ fn test_parse_if_statement_with_else() {
     assert ast.program_debug(program) == 'if(cmd(words=[lit(test), lit(5), lit(-gt), lit(3)]) => cmd(words=[lit(echo), lit(yes)])) else (cmd(words=[lit(echo), lit(no)]))'
 }
 
+fn test_parse_if_statement_with_elif() {
+    mut parser := new_parser(lex.tokenize('if test 1 -eq 2; then echo no; elif test 2 -eq 2; then echo yes; else echo other; fi'))
+    program := parser.parse_program() or { panic(err) }
+    assert ast.program_debug(program) == 'if(cmd(words=[lit(test), lit(1), lit(-eq), lit(2)]) => cmd(words=[lit(echo), lit(no)])) else (if(cmd(words=[lit(test), lit(2), lit(-eq), lit(2)]) => cmd(words=[lit(echo), lit(yes)])) else (cmd(words=[lit(echo), lit(other)])))'
+}
+
 fn test_parse_while_statement() {
     mut parser := new_parser(lex.tokenize(r'while [ "$i" -lt 3 ]; do i=$((i + 1)); echo "$i"; done'))
     program := parser.parse_program() or { panic(err) }
@@ -197,4 +203,10 @@ fn test_parse_for_in_statement() {
     mut parser := new_parser(lex.tokenize(r'for item in one "two words" three; do echo "$item"; done'))
     program := parser.parse_program() or { panic(err) }
     assert ast.program_debug(program) == 'for(item in lit(one) dq(lit(two) + lit( ) + lit(words)) lit(three) => cmd(words=[lit(echo), dq(param(item; op=noop))]))'
+}
+
+fn test_parse_break_and_continue_statements() {
+    mut parser := new_parser(lex.tokenize('while true; do continue; break; done'))
+    program := parser.parse_program() or { panic(err) }
+    assert ast.program_debug(program) == 'while(cmd(words=[lit(true)]) => continue ; break)'
 }

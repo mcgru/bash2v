@@ -86,6 +86,12 @@ pub fn stmt_debug(stmt Stmt) string {
             }
             'for(${stmt.name} in ${items.join(" ")} => ${body.join(" ; ")})'
         }
+        BreakStmt {
+            'break'
+        }
+        ContinueStmt {
+            'continue'
+        }
     }
 }
 

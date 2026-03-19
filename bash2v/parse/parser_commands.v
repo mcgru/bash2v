@@ -92,6 +92,12 @@ fn (mut parser Parser) parse_command_stmt() !ast.Stmt {
     if parser.current_word_is('for') {
         return ast.Stmt(parser.parse_for_in_stmt()!)
     }
+    if parser.current_word_is('break') {
+        return ast.Stmt(parser.parse_break_stmt()!)
+    }
+    if parser.current_word_is('continue') {
+        return ast.Stmt(parser.parse_continue_stmt()!)
+    }
     cmd := parser.parse_simple_command()!
     if cmd.words.len == 0 && cmd.assignments.len > 0 {
         return ast.Stmt(ast.AssignmentStmt{
