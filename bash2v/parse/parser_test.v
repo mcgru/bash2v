@@ -176,3 +176,9 @@ fn test_parse_if_statement_with_else() {
     program := parser.parse_program() or { panic(err) }
     assert ast.program_debug(program) == 'if(cmd(words=[lit(test), lit(5), lit(-gt), lit(3)]) => cmd(words=[lit(echo), lit(yes)])) else (cmd(words=[lit(echo), lit(no)]))'
 }
+
+fn test_parse_while_statement() {
+    mut parser := new_parser(lex.tokenize(r'while [ "${i}" -lt 3 ]; do i=$((i + 1)); echo "${i}"; done'))
+    program := parser.parse_program() or { panic(err) }
+    assert ast.program_debug(program) == 'while(cmd(words=[lit([), dq(param(i; op=noop)), lit(-lt), lit(3), lit(])]) => assign(i=arith(i + 1)) ; cmd(words=[lit(echo), dq(param(i; op=noop))]))'
+}

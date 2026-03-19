@@ -111,7 +111,13 @@ pub:
     else_body ProgramIR
 }
 
-pub type StmtIR = SetVarIR | ExecIR | PipelineIR | IfIR
+pub struct WhileIR {
+pub:
+    condition ProgramIR
+    body      ProgramIR
+}
+
+pub type StmtIR = SetVarIR | ExecIR | PipelineIR | IfIR | WhileIR
 
 pub struct ProgramIR {
 pub:
@@ -260,6 +266,17 @@ pub fn stmt_ir_debug(stmt StmtIR) string {
                 out += ' else (${else_body.join(" ; ")})'
             }
             out
+        }
+        WhileIR {
+            mut cond := []string{}
+            for item in stmt.condition.stmts {
+                cond << stmt_ir_debug(item)
+            }
+            mut body := []string{}
+            for item in stmt.body.stmts {
+                body << stmt_ir_debug(item)
+            }
+            'while(${cond.join(" ; ")} => ${body.join(" ; ")})'
         }
     }
 }

@@ -126,3 +126,18 @@ fi'
     assert transpiled_result.status == 0
     assert transpiled_result.stdout == bash_result.stdout
 }
+
+fn test_bash_and_transpiled_match_for_while_statement() {
+    source := r'i=0
+while [ "${i}" -lt 3 ]; do
+i=$((i + 1))
+echo "${i}"
+done'
+
+    bash_result := run_bash_source('while_case', source) or { panic(err) }
+    transpiled_result := run_transpiled_source('while_case', source) or { panic(err) }
+
+    assert bash_result.status == 0
+    assert transpiled_result.status == 0
+    assert transpiled_result.stdout == bash_result.stdout
+}

@@ -93,6 +93,13 @@ fn test_lower_if_statement() {
     assert program_ir_debug(program_ir) == 'if(exec(argv=[lit(test), lit(5), lit(-gt), lit(3)]) => exec(argv=[lit(echo), lit(yes)])) else (exec(argv=[lit(echo), lit(no)]))'
 }
 
+fn test_lower_while_statement() {
+    mut parser := parse.new_parser(lex.tokenize(r'while [ "${i}" -lt 3 ]; do i=$((i + 1)); echo "${i}"; done'))
+    program := parser.parse_program() or { panic(err) }
+    program_ir := lower_program(program) or { panic(err) }
+    assert program_ir_debug(program_ir) == 'while(exec(argv=[lit([), dq(param(i; op=noop)), lit(-lt), lit(3), lit(])]) => set(i=arith(i + 1); kind=scalar) ; exec(argv=[lit(echo), dq(param(i; op=noop))]))'
+}
+
 fn test_lower_default_value_expansion() {
     mut parser := parse.new_parser(lex.tokenize(r'echo "${name:=fallback}" "${name:-other}"'))
     program := parser.parse_program() or { panic(err) }

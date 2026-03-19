@@ -64,6 +64,17 @@ pub fn stmt_debug(stmt Stmt) string {
             }
             out
         }
+        WhileStmt {
+            mut cond := []string{}
+            for item in stmt.condition {
+                cond << stmt_debug(item)
+            }
+            mut body := []string{}
+            for item in stmt.body {
+                body << stmt_debug(item)
+            }
+            'while(${cond.join(" ; ")} => ${body.join(" ; ")})'
+        }
     }
 }
 

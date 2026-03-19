@@ -20,6 +20,18 @@ fn (mut parser Parser) parse_if_stmt() !ast.IfStmt {
     }
 }
 
+fn (mut parser Parser) parse_while_stmt() !ast.WhileStmt {
+    parser.expect_word('while')!
+    condition := parser.parse_stmt_sequence_until(['do'])!
+    parser.expect_word('do')!
+    body := parser.parse_stmt_sequence_until(['done'])!
+    parser.expect_word('done')!
+    return ast.WhileStmt{
+        condition: condition
+        body: body
+    }
+}
+
 fn (mut parser Parser) parse_stmt_sequence_until(stop_words []string) ![]ast.Stmt {
     mut stmts := []ast.Stmt{}
     for !parser.done() {

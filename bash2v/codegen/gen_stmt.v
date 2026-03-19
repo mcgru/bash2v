@@ -8,6 +8,7 @@ pub fn gen_stmt(stmt lower.StmtIR) string {
         lower.ExecIR { gen_exec(stmt) }
         lower.PipelineIR { gen_pipeline(stmt) }
         lower.IfIR { gen_if(stmt) }
+        lower.WhileIR { gen_while(stmt) }
     }
 }
 
@@ -108,6 +109,19 @@ fn gen_if(stmt lower.IfIR) string {
         for item in stmt.else_body.stmts {
             lines << indent_block(gen_stmt(item), '\t')
         }
+    }
+    lines << '}'
+    return lines.join('\n')
+}
+
+fn gen_while(stmt lower.WhileIR) string {
+    mut lines := []string{}
+    lines << 'for {'
+    lines << '\tif bashrt.eval_program_status(mut st, ${gen_eval_program(stmt.condition)})! != 0 {'
+    lines << '\t\tbreak'
+    lines << '\t}'
+    for item in stmt.body.stmts {
+        lines << indent_block(gen_stmt(item), '\t')
     }
     lines << '}'
     return lines.join('\n')

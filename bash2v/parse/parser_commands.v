@@ -86,6 +86,9 @@ fn (mut parser Parser) parse_command_stmt() !ast.Stmt {
     if parser.current_word_is('if') {
         return ast.Stmt(parser.parse_if_stmt()!)
     }
+    if parser.current_word_is('while') {
+        return ast.Stmt(parser.parse_while_stmt()!)
+    }
     cmd := parser.parse_simple_command()!
     if cmd.words.len == 0 && cmd.assignments.len > 0 {
         return ast.Stmt(ast.AssignmentStmt{

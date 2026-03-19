@@ -49,3 +49,9 @@ pub:
     then_body []Stmt
     else_body []Stmt
 }
+
+pub struct WhileStmt {
+pub:
+    condition []Stmt
+    body      []Stmt
+}

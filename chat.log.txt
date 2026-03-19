@@ -388,3 +388,40 @@
 
 [2026-03-19 09:23:57 UTC] DECISION
 - Следующий логичный шаг: `while ...; do ...; done`, потому что он почти напрямую использует уже введённую модель condition program + body program.
+
+[2026-03-19 09:31:09 UTC] USER
+- `продолжаем`
+
+[2026-03-19 09:31:09 UTC] ASSISTANT SUMMARY
+- Реализован `while ...; do ...; done` как новый control-flow statement.
+- Для этого расширены:
+- AST (`WhileStmt`)
+- parser block parsing со stop-words `do`, `done`
+- lowering IR (`WhileIR`)
+- codegen в V loop на базе:
+- `for {`
+- `if bashrt.eval_program_status(...) != 0 { break }`
+- `... body ...`
+- `}`
+- `while` использует ту же runtime model condition-program + body-program, что и `if`.
+- В test scenarios для loop body использован `${i}`, а не plain `$i`, потому что plain `$VAR` expansion пока ещё не реализован как отдельный surface-area шаг.
+
+[2026-03-19 09:31:09 UTC] STATUS
+- Добавлены и проходят проверки в:
+- `bash2v/parse/parser_test.v`
+- `bash2v/lower/lower_test.v`
+- `bash2v/codegen/codegen_test.v`
+- `tests/e2e/compile_run_test.v`
+- `tests/oracle/compare_test.v`
+- `while` подтвержден e2e и oracle compare против Bash на сценарии:
+- `i=0`
+- `while [ "${i}" -lt 3 ]; do`
+- `i=$((i + 1))`
+- `echo "${i}"`
+- `done`
+- Полный регресс зелёный:
+- `v test /home/margo/dev/bash2v/bash2v` -> `6 passed, 6 total`
+- `v test /home/margo/dev/bash2v/tests` -> `3 passed, 3 total`
+
+[2026-03-19 09:31:09 UTC] DECISION
+- Следующий логичный шаг: `for name in ...; do ...; done`, а затем отдельным проходом plain `$VAR` expansion, чтобы цикл-тесты и shell surface area стали ближе к естественному Bash стилю.

@@ -30,6 +30,9 @@ pub fn lower_stmt(stmt ast.Stmt) ![]StmtIR {
         ast.IfStmt {
             return [StmtIR(lower_if_stmt(stmt)!)]
         }
+        ast.WhileStmt {
+            return [StmtIR(lower_while_stmt(stmt)!)]
+        }
     }
 }
 
@@ -66,6 +69,9 @@ fn lower_pipeline(pipeline ast.Pipeline) !PipelineIR {
             ast.IfStmt {
                 return error('if statements are not valid pipeline steps')
             }
+            ast.WhileStmt {
+                return error('while statements are not valid pipeline steps')
+            }
         }
     }
     return PipelineIR{
@@ -78,6 +84,13 @@ fn lower_if_stmt(stmt ast.IfStmt) !IfIR {
         condition: lower_stmt_block(stmt.condition)!
         then_body: lower_stmt_block(stmt.then_body)!
         else_body: lower_stmt_block(stmt.else_body)!
+    }
+}
+
+fn lower_while_stmt(stmt ast.WhileStmt) !WhileIR {
+    return WhileIR{
+        condition: lower_stmt_block(stmt.condition)!
+        body: lower_stmt_block(stmt.body)!
     }
 }
 

@@ -121,6 +121,16 @@ fi')
     assert result.output == 'yes\nok\n'
 }
 
+fn test_generated_v_can_run_while_statement() {
+    result := transpile_and_run('generated_while.v', r'i=0
+while [ "${i}" -lt 3 ]; do
+i=$((i + 1))
+echo "${i}"
+done')
+    assert result.exit_code == 0
+    assert result.output == '1\n2\n3\n'
+}
+
 fn transpile_and_run(filename string, source string) os.Result {
     tmp_dir := os.join_path('/home/margo/dev/bash2v', 'tests', 'e2e', 'tmp')
     os.mkdir_all(tmp_dir) or { panic(err) }
